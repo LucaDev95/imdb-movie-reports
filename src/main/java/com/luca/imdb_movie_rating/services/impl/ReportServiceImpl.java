@@ -1,15 +1,21 @@
 package com.luca.imdb_movie_rating.services.impl;
 
-import com.luca.imdb_movie_rating.dtos.RatingResult;
-import com.luca.imdb_movie_rating.repositories.MovieRepository;
+import com.luca.imdb_movie_rating.dtos.DailySummaryDto;
+import com.luca.imdb_movie_rating.dtos.DailySummaryGenreDto;
+import com.luca.imdb_movie_rating.dtos.TrendingMovieDto;
+
+
 import com.luca.imdb_movie_rating.services.RatingService;
+import com.luca.imdb_movie_rating.utils.FormatUtils;
+import com.luca.imdb_movie_rating.utils.ReportUtils;
 import org.springframework.stereotype.Service;
 import com.luca.imdb_movie_rating.services.ReportService;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.util.List;
+
+
+import static com.luca.imdb_movie_rating.utils.ReportUtils.*;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -17,77 +23,65 @@ public class ReportServiceImpl implements ReportService {
 
     private final RatingService ratingService;
 
-    public ReportServiceImpl(RatingService ratingService){
-        this.ratingService=ratingService;
+    public ReportServiceImpl(RatingService ratingService) {
+        this.ratingService = ratingService;
     }
 
 
     @Override
-    public void generateDailyReport() {
+    public String generateTrendingMoviesReport(List<TrendingMovieDto> trendingMovieDtoList) {
 
-        List<RatingResult> ratingResultList= ratingService.loadRatingResult();
+        StringBuilder sb = new StringBuilder();
 
-        writeCsv(ratingResultList);
+
+        sb.append(ReportUtils.createTrendingMoviesHeader());
+
+        trendingMovieDtoList.forEach(movie -> {
+            String line = String.join(",", movie.getPosition().toString(), movie.gettConst(), escapeString(movie.getPrimaryTitle())
+                    , escapeString(movie.getOrigTitle()), movie.getNumVotesDiff().toString(), movie.getCurrentNumVotes().toString(), formatDouble(movie.getAvgRatingDiff()),
+                    formatDouble(movie.getCurrentAvgRating()), movie.getYear().toString(), formatDuration(movie.getRuntimeMinutes()), parseBoolean(movie.getAdult())
+                    , movie.getGenreList()) + "\n";
+
+
+            sb.append(line);
+        });
+
+
+        return sb.toString();
 
     }
 
-    private void writeCsv(List<RatingResult> ratingResultList){
-
-        try(BufferedWriter bw=new BufferedWriter(new FileWriter("C:\\Users\\Utente\\OneDrive\\Desktop\\csv_imdb\\tmp\\ratings.csv"))){
-
-            int rowNum=1;
-            String header="rowNum,tConst,primaryTitle,origTitle,numVotesDiff,numVotes,avgRatingDiff,currentAvgRating,year,runtimeMinutes,isAdult,genres\n";
-
-            bw.write(header);
-            for(RatingResult r : ratingResultList){
-                String num=rowNum+"";
-                String tConst=r.gettConst();
-                String primaryTitle=escapeString(r.getPrimaryTitle());
-                String origTitle=escapeString(r.getOrigTitle());
-                String runtimeMinutes=r.getRuntimeMinutes()!=null?r.getRuntimeMinutes()+"":"NA";
-                String genres=escapeString(r.getGenres());
-
-                String isAdult=parseBoolean(r.getAdult());
-
-                String avgRatingDiff=r.getAvgRatingDiff()+"";
-
-                String currAverageRating= r.getCurrentAvgRating()+"";
-
-                String numVotesDiff=r.getNumVotesDiff()+"";
-
-                String year=r.getYear()+"";
-
-                String numVotes=r.getCurrentNumVotes()+"";
-
-                String line=num+","+tConst+","+primaryTitle+","+origTitle+","+numVotesDiff+","+numVotes
-                        +","+avgRatingDiff+","+currAverageRating+","+year+","+runtimeMinutes+","+isAdult+","+genres+"\n";
-
-                bw.write(line);
-
-                rowNum++;
-
-            }
+    @Override
+    public String generateDailySummaryReport(DailySummaryDto dailySummary, List<DailySummaryGenreDto> dailyGenreSummaryList) {
 
 
-        }catch(IOException e){
-            e.printStackTrace();
-        }
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(createDailySummaryHeader());
+
+        String startDate = FormatUtils.formatDate(dailySummary.getValuationStartDate());
+        String endDate = FormatUtils.formatDate(dailySummary.getValuationDate());
+
+
+        sb.append(getSummaryLine(dailySummary, "ALL", startDate, endDate));
+
+
+        dailyGenreSummaryList.forEach(s -> sb.append(getSummaryLine(s, s.getGenre().name(), startDate, endDate)));
+
+
+        return sb.toString();
+
+
     }
 
-    private String escapeString(String source){
+    private String getSummaryLine(DailySummaryDto dto, String genre, String startDate, String endDate) {
 
-        if(source.contains("\"")) {
-            source=source.replace("\"","\"\"");
-        }
-
-        if(source.contains(",")){
-            source="\""+source+"\"";
-        }
-
-        return source;
+        return String.join(",", genre, dto.getMoviesValuated().toString(), dto.getNumNewMovies().toString(), dto.getTotalNumVotes().toString()
+                , dto.getNumNewVotes().toString(), formatDouble(dto.getTotalAvgNumVotes()), formatDouble(dto.getCurrentVoteDensity()), formatDouble(dto.getAvgRating())
+                , formatDouble(dto.getAvgRatingVariation()), dto.getOverallAvgRuntimeMinutes() != null ? formatDuration(dto.getOverallAvgRuntimeMinutes().intValue()) : "NA",
+                dto.getNewMoviesAvgDuration() != null ? formatDuration(dto.getNewMoviesAvgDuration().intValue()) : "NA"
+                , dto.getTodayNumAdultMovies().toString(), formatPercentage(dto.getOverallAdultMoviesPerc()), startDate, endDate) + "\n";
     }
 
-    private String parseBoolean(boolean value){
-        return value?"Y":"N";
-    }
+
 }

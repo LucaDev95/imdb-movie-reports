@@ -1,6 +1,16 @@
 package com.luca.imdb_movie_rating.dtos;
 
-public class RatingResult {
+import com.luca.imdb_movie_rating.enums.Genre;
+
+import java.util.List;
+
+public class TrendingMovieDto {
+
+    private Long movieId;
+
+    private Long startRatingId;
+
+    private Long endRatingId;
 
     private String tConst;
 
@@ -8,9 +18,9 @@ public class RatingResult {
 
     private Integer currentNumVotes;
 
-    private Float avgRatingDiff;
+    private Double avgRatingDiff;
 
-    private Float currentAvgRating;
+    private Double currentAvgRating;
 
     private String primaryTitle;
 
@@ -20,24 +30,36 @@ public class RatingResult {
 
     private Integer runtimeMinutes;
 
-    private String genres;
+    private List<Genre> genres;
+
+    private String genreList;
 
     private Integer year;
 
     private Integer position;
 
-    public RatingResult(String tConst, String primaryTitle, String origTitle, Integer numVotesDiff, Integer currentNumVotes, Float avgRatingDiff, Float currentAvgRating, Boolean isAdult, String genres, Integer year, Integer runtimeMinutes) {
-        this.tConst = tConst;
-        this.numVotesDiff = numVotesDiff;
-        this.currentNumVotes = currentNumVotes;
-        this.avgRatingDiff = avgRatingDiff;
-        this.currentAvgRating = currentAvgRating;
-        this.primaryTitle = primaryTitle;
-        this.origTitle = origTitle;
-        this.isAdult = isAdult;
-        this.runtimeMinutes = runtimeMinutes;
-        this.genres = genres;
-        this.year = year;
+    public Long getMovieId() {
+        return movieId;
+    }
+
+    public void setMovieId(Long movieId) {
+        this.movieId = movieId;
+    }
+
+    public Long getStartRatingId() {
+        return startRatingId;
+    }
+
+    public void setStartRatingId(Long startRatingId) {
+        this.startRatingId = startRatingId;
+    }
+
+    public Long getEndRatingId() {
+        return endRatingId;
+    }
+
+    public void setEndRatingId(Long endRatingId) {
+        this.endRatingId = endRatingId;
     }
 
     public String gettConst() {
@@ -64,19 +86,19 @@ public class RatingResult {
         this.currentNumVotes = currentNumVotes;
     }
 
-    public Float getAvgRatingDiff() {
+    public Double getAvgRatingDiff() {
         return avgRatingDiff;
     }
 
-    public void setAvgRatingDiff(Float avgRatingDiff) {
+    public void setAvgRatingDiff(Double avgRatingDiff) {
         this.avgRatingDiff = avgRatingDiff;
     }
 
-    public Float getCurrentAvgRating() {
+    public Double getCurrentAvgRating() {
         return currentAvgRating;
     }
 
-    public void setCurrentAvgRating(Float currentAvgRating) {
+    public void setCurrentAvgRating(Double currentAvgRating) {
         this.currentAvgRating = currentAvgRating;
     }
 
@@ -112,11 +134,11 @@ public class RatingResult {
         this.runtimeMinutes = runtimeMinutes;
     }
 
-    public String getGenres() {
+    public List<Genre> getGenres() {
         return genres;
     }
 
-    public void setGenres(String genres) {
+    public void setGenres(List<Genre> genres) {
         this.genres = genres;
     }
 
@@ -136,21 +158,11 @@ public class RatingResult {
         this.position = position;
     }
 
-    @Override
-    public String toString() {
-        return "RatingResult{" +
-                "tConst='" + tConst + '\'' +
-                ", numVotesDiff=" + numVotesDiff +
-                ", currentNumVotes=" + currentNumVotes +
-                ", avgRatingDiff=" + avgRatingDiff +
-                ", currentAvgRating=" + currentAvgRating +
-                ", primaryTitle='" + primaryTitle + '\'' +
-                ", origTitle='" + origTitle + '\'' +
-                ", isAdult=" + isAdult +
-                ", runtimeMinutes=" + runtimeMinutes +
-                ", genres='" + genres + '\'' +
-                ", year=" + year +
-                ", position=" + position +
-                '}';
+    public String getGenreList() {
+        return genreList;
+    }
+
+    public void setGenreList(String genreList) {
+        this.genreList = genreList;
     }
 }

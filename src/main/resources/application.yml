@@ -1,15 +1,53 @@
 spring:
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/imdb-movie-rating
     username: ${db.username}
     password: ${db.password}
     driver-class-name: org.postgresql.Driver
   config:
     import: "secrets.yml"
+  profiles:
+    default: local
+
+
+  mail:
+    host: smtp.gmail.com
+    port : 587
+    username: ${mail.sender}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+imdb:
+  baseUrl: https://datasets.imdbws.com/
+  basicsGz: title.basics.tsv.gz
+  ratingsGz: title.ratings.tsv.gz
+
+loader:
+  tConstSelectSize: 500
+  movieInsertSize: 500
+  ratingInsertSize: 500
+  maxPreviousYears: 2
+  maxRatingDays: 1000
+
+summary:
+  recipient: ${mail.recipient}
+  summaryIntervalDays: 10
+
+
+
+

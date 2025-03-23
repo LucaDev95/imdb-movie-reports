@@ -16,7 +16,7 @@ public class Movie {
     @SequenceGenerator(name = "MOVIE_SEQ", sequenceName = "MOVIE_SEQ", allocationSize = 10)
     private Long id;
 
-    @Column(nullable = false,unique = true)
+    @Column(unique = true)
     private String tConst;
 
     private String primaryTitle;
@@ -29,18 +29,28 @@ public class Movie {
 
     private Integer runtimeMinutes;
 
-    private String genres;
+    @OneToMany(mappedBy="movie", cascade = CascadeType.PERSIST)
+    private List<Rating> ratingList;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genre",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    List<GenreEntity> genreList;
+
 
     @CreationTimestamp
     private LocalDate insertDate;
-
-    @OneToMany(targetEntity = Rating.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "movie")
-    private List<Rating> ratingList;
 
     public Long getId() {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String gettConst() {
         return tConst;
@@ -90,17 +100,10 @@ public class Movie {
         this.runtimeMinutes = runtimeMinutes;
     }
 
-    public String getGenres() {
-        return genres;
-    }
-
-    public void setGenres(String genres) {
-        this.genres = genres;
-    }
-
     public LocalDate getInsertDate() {
         return insertDate;
     }
+
 
     public List<Rating> getRatingList() {
         return ratingList;
@@ -110,11 +113,15 @@ public class Movie {
         this.ratingList = ratingList;
     }
 
-    public void addRating(Rating r){
-        if(this.ratingList==null){
-            this.ratingList=new ArrayList<>();
-        }
+    public List<GenreEntity> getGenreList() {
+        return genreList;
+    }
 
-        this.ratingList.add(r);
+    public void setGenreList(List<GenreEntity> genreList) {
+        this.genreList = genreList;
+    }
+
+    public void setInsertDate(LocalDate insertDate) {
+        this.insertDate = insertDate;
     }
 }

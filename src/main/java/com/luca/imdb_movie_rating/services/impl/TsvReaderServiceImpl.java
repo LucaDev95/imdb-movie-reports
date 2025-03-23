@@ -1,112 +1,311 @@
 package com.luca.imdb_movie_rating.services.impl;
 
+import com.luca.imdb_movie_rating.config.ImdbProperties;
+import com.luca.imdb_movie_rating.config.LoadingProperties;
 import com.luca.imdb_movie_rating.dtos.MovieRow;
 import com.luca.imdb_movie_rating.dtos.RatingRow;
+import com.luca.imdb_movie_rating.entities.Movie;
+import com.luca.imdb_movie_rating.enums.Genre;
+import com.luca.imdb_movie_rating.services.GenreService;
+import com.luca.imdb_movie_rating.services.MovieService;
+import com.luca.imdb_movie_rating.services.RatingService;
 import com.luca.imdb_movie_rating.services.TsvReaderService;
+import com.luca.imdb_movie_rating.utils.ImdbConstants;
+import com.luca.imdb_movie_rating.utils.ParsingUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 @Service
 public class TsvReaderServiceImpl implements TsvReaderService {
 
-    private String ratingsTsvFilePath="C:\\Users\\Utente\\OneDrive\\Desktop\\csv_imdb\\current\\title.ratings.tsv";
+    private static final Logger logger = LoggerFactory.getLogger(TsvReaderServiceImpl.class);
 
-    private String getTitleBasicsTsvSavePath="C:\\Users\\Utente\\OneDrive\\Desktop\\csv_imdb\\current\\title.basics.tsv";
+    private final MovieService movieService;
+
+    private final RatingService ratingService;
+
+    private final ImdbProperties imdbProperties;
+
+    private final GenreService genreService;
+
+    private final LoadingProperties loadingProperties;
+
+
+    public TsvReaderServiceImpl(MovieService movieService, RatingService ratingService, ImdbProperties imdbProperties,GenreService genreService,LoadingProperties loadingProperties){
+        this.movieService=movieService;
+        this.ratingService=ratingService;
+        this.imdbProperties=imdbProperties;
+        this.genreService=genreService;
+        this.loadingProperties=loadingProperties;
+
+    }
 
     @Override
-    public List<MovieRow> readTitlesTsv(String tsvPath, Map<String,RatingRow> ratingMap) {
+    public void loadFirstTime(){
 
-        List<MovieRow> movieRows=new ArrayList<>();
+        try( BufferedReader basicsBufferedReader =  new BufferedReader(new InputStreamReader(new GZIPInputStream(URI.create(imdbProperties.getBasicsGz()).toURL().openStream())));
+             BufferedReader ratingsBufferedReader =  new BufferedReader(new InputStreamReader(new GZIPInputStream(URI.create(imdbProperties.getRatingsGz()).toURL().openStream())))){
 
-        try(BufferedReader br=new BufferedReader(new FileReader(new File(getTitleBasicsTsvSavePath)))){
+            int startValuationYear=LocalDate.now().getYear()-loadingProperties.getMaxPreviousYears();
 
-            // skip headers
-            br.readLine();
+            List<MovieRow> movieRowList=new ArrayList<>();
 
-            while(br.ready()){
-                String line=br.readLine();
+           Map<Genre,Integer> genreMap= genreService.getGenreMap();
+
+            basicsBufferedReader.readLine();
+            ratingsBufferedReader.readLine();
+
+            String[] ratingArr=ratingsBufferedReader.readLine().split("\t");
+
+            while(basicsBufferedReader.ready()){
+
+                MovieRow movieRow=new MovieRow();
+
+                String[] arr=basicsBufferedReader.readLine().split("\t");
+
+                try {
 
 
-                System.out.println(line);
+                if(ParsingUtil.parseTitleType(arr).equals(ImdbConstants.MOVIE)){
 
-                String[] arr=line.split("\t");
+                    movieRow.settConst(ParsingUtil.parseTConst(arr));
 
-                if(arr[1].equals("movie")){
+                        movieRow.setYear(ParsingUtil.parseYear(arr));
 
-                    String tConst=arr[0];
+                        if (movieRow.getYear() >= startValuationYear) {
 
-                    RatingRow ratingRow=ratingMap.get(arr[0]);
 
-                    if(ratingRow!=null){
+                            movieRow=ParsingUtil.parseOtherFields(arr,movieRow);
 
-                        boolean isAdult=Boolean.parseBoolean(arr[4]);
+                            RatingRow rating=null;
 
-                        int year=Integer.parseInt(arr[5]);
+                            while(ratingArr[0].compareTo(movieRow.gettConst())<0){
 
-                        Integer runtimeMinutes;
-                        try{
-                             runtimeMinutes=Integer.parseInt(arr[7]);
-                        }catch(NumberFormatException e){
-                            runtimeMinutes=null;
+                                 ratingArr=ratingsBufferedReader.readLine().split("\t");
+                            }
+
+                            if(ratingArr[0].compareTo(movieRow.gettConst())==0){
+
+                                rating=new RatingRow(null,ParsingUtil.parseAvgrating(ratingArr),ParsingUtil.parseNumVotes(ratingArr));
+                            }
+
+                            movieRow.setRatingRow(rating);
+
+                            movieRowList.add(movieRow);
                         }
-
-
-                        MovieRow movieRow=new MovieRow(tConst,arr[2],arr[3],isAdult,year,runtimeMinutes,arr[8],ratingRow);
-
-                        movieRows.add(movieRow);
 
                     }
 
+                }catch(Exception e){
+                    // errore relativo al parsing, loggare e basta
+
+
+                    continue;
                 }
+
+                if(movieRowList.size()>=loadingProperties.getMovieInsertSize()){
+                    saveAndClearList(movieRowList, genreMap);
+                }
+
+
             }
 
-
+            if(!movieRowList.isEmpty()){
+                saveAndClearList(movieRowList, genreMap);
+            }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            // erorre di I/O, inviare la mail
         }
 
-        return movieRows;
 
     }
 
     @Override
-    public  Map<String,RatingRow> readRatingsTsv(String tsvPath) {
+    public void readTitlesTsv() {
 
-        Map<String,RatingRow> ratingMap = new HashMap<>();
+        List<MovieRow> movieRowList=new ArrayList<>();
 
-        try(BufferedReader br=new BufferedReader(new FileReader(new File(ratingsTsvFilePath)))){
+        int currentYear=LocalDate.now().getYear();
 
-            // skip headers
-            br.readLine();
+        Map<String,Long> tConstMap=movieService.getMovieNextTConstMap(null);
 
-            while(br.ready()){
-                String line=br.readLine();
+        String maxString="";
 
-                String[] arr=line.split("\t");
+        if(tConstMap.size()>0){
+            maxString=Collections.max(tConstMap.keySet(),Comparator.naturalOrder());
+        }
 
-                int numVotes=Integer.parseInt(arr[2]);
+        Map<Genre,Integer> genreMap= genreService.getGenreMap();
 
-                if(numVotes>=2000){
+        try( BufferedReader basicsBufferedReader =  new BufferedReader(new InputStreamReader(new GZIPInputStream(URI.create(imdbProperties.getBasicsGz()).toURL().openStream())))){
 
-                    Float avgRating=Float.parseFloat(arr[1]);
+            basicsBufferedReader.readLine();
 
-                    RatingRow rating=new RatingRow(arr[0],Float.parseFloat(arr[1]),numVotes);
+            while(basicsBufferedReader.ready()){
 
-                    ratingMap.put(arr[0],rating);
+                String[] arr=basicsBufferedReader.readLine().split("\t");
 
+                MovieRow movieRow=new MovieRow();
+
+                try{
+
+                if(ParsingUtil.parseTitleType(arr).equals(ImdbConstants.MOVIE)){
+
+
+                    movieRow.settConst(ParsingUtil.parseTConst(arr));
+
+                    movieRow.setYear(ParsingUtil.parseYear(arr));
+
+                        if(movieRow.getYear()!=null && movieRow.getYear()>=currentYear){
+                            while(maxString.compareTo(movieRow.gettConst())<0 && tConstMap.size()>0){
+
+                                tConstMap= movieService.getMovieNextTConstMap(maxString);
+                                if(tConstMap.size()>0){
+                                    maxString=Collections.max(tConstMap.keySet(),Comparator.naturalOrder());
+                                }
+
+                            }
+
+                            if(!tConstMap.containsKey(movieRow.gettConst())){
+                               movieRow=ParsingUtil.parseOtherFields(arr,movieRow);
+
+                                movieRowList.add(movieRow);
+                            }
+                        }
+
+                    }
+
+
+                }catch(Exception e){
+                    // erorre nel parsing, loggo e continuo
+                    continue;
+                }
+
+                if(movieRowList.size()>=loadingProperties.getMovieInsertSize()){
+                    saveAndClearList(movieRowList, genreMap);
                 }
             }
 
+            if(!movieRowList.isEmpty()) {
+                saveAndClearList(movieRowList, genreMap);
+            }
 
+
+
+        }catch (IOException e) {
+            // lanciare eccezione e inviare mail
+
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void readRatingsTsv() {
+
+        List<RatingRow> ratingRowList=new ArrayList<>();
+
+        Map<String,Long> tConstMap= movieService.getMovieNextTConstMap(null);
+
+        logger.info("tConstMap size : {}",tConstMap.size());
+
+        String maxString="";
+
+        if(tConstMap.size()>0){
+            maxString=Collections.max(tConstMap.keySet(),Comparator.naturalOrder());
+        }
+
+        try(BufferedReader ratingsBufferedReader =  new BufferedReader(new InputStreamReader(new GZIPInputStream(URI.create(imdbProperties.getRatingsGz()).toURL().openStream())))){
+
+            // skip headers
+            ratingsBufferedReader.readLine();
+
+            while(ratingsBufferedReader.ready()){
+
+                try {
+
+                    String[] arr = ratingsBufferedReader.readLine().split("\t");
+                    String tConst = ParsingUtil.parseTConst(arr);
+
+                    while (maxString.compareTo(tConst) < 0 && tConstMap.size() > 0) {
+                        tConstMap = movieService.getMovieNextTConstMap(maxString);
+                        if (tConstMap.size() > 0) {
+                            maxString = Collections.max(tConstMap.keySet(), Comparator.naturalOrder());
+                        }
+                    }
+
+                    Long movieId = tConstMap.get(tConst);
+
+
+                    if (movieId != null) {
+
+                        logger.info("found movie for tConst {}", tConst);
+
+                        RatingRow rating = new RatingRow(movieId, ParsingUtil.parseAvgrating(arr), ParsingUtil.parseNumVotes(arr));
+
+
+                        ratingRowList.add(rating);
+                    }
+
+                }catch(Exception e){
+                    continue;
+                    // errore parsing rating
+                }
+
+                if(ratingRowList.size()>=loadingProperties.getRatingInsertSize()){
+                    saveAndClearList(ratingRowList);
+                }
+
+            }
+
+            if(ratingRowList.size()>0){
+                saveAndClearList(ratingRowList);
+            }
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        return ratingMap;
+
 
     }
+
+    private void saveAndClearList(List<MovieRow> movieRowList,Map<Genre,Integer> genreMap){
+        try {
+
+
+            movieService.saveNewMovies(movieRowList, genreMap);
+            movieRowList.clear();
+
+        }catch(RuntimeException e){
+            // lanciare un eccezione relativa al salvataggio, sarà inviata via mail
+
+        }
+    }
+
+    private void saveAndClearList(List<RatingRow> ratingRowList){
+        try {
+
+
+            ratingService.saveRatingRows(ratingRowList);
+            ratingRowList.clear();
+
+        }catch(RuntimeException e){
+            // lanciare l'eccezione relativa al salvataggio
+        }
+    }
+
+
+
 }

@@ -1,45 +1,53 @@
 package com.luca.imdb_movie_rating.services.impl;
-import com.luca.imdb_movie_rating.dtos.RatingRow;
-import com.luca.imdb_movie_rating.dtos.MovieRow;
-import com.luca.imdb_movie_rating.services.DownloadTsvService;
-import com.luca.imdb_movie_rating.services.MovieService;
-import com.luca.imdb_movie_rating.services.ResetDataService;
-import com.luca.imdb_movie_rating.services.TsvReaderService;
+import com.luca.imdb_movie_rating.exceptions.ApplicationException;
+import com.luca.imdb_movie_rating.services.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import java.util.List;
-
-import java.util.Map;
 
 @Service
 public class ResetDataServiceImpl implements ResetDataService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ResetDataServiceImpl.class);
+
     private final DownloadTsvService downloadService;
 
-    private final MovieService movieService;
+    private final ResetTablesService resetTablesService;
 
     private final TsvReaderService tsvReaderService;
 
-    public ResetDataServiceImpl(DownloadTsvService downloadService,MovieService movieService,TsvReaderService tsvReaderService) {
+    private final EmailService emailService;
+
+    public ResetDataServiceImpl(DownloadTsvService downloadService, ResetTablesService resetTablesService, TsvReaderService tsvReaderService, EmailService emailService) {
         this.downloadService = downloadService;
-        this.movieService=movieService;
+        this.resetTablesService=resetTablesService;
         this.tsvReaderService=tsvReaderService;
+        this.emailService=emailService;
     }
 
     @Override
-    @Async
     public void resetData() {
-       // downloadService.downloadTsv();
-        System.out.println("download completed");
-
-       // movieService.saveNewMovies(null);
-
-        Map<String, RatingRow> ratingMap=this.tsvReaderService.readRatingsTsv(null);
-        List<MovieRow> movieRowList= this.tsvReaderService.readTitlesTsv(null,ratingMap);
 
 
-        movieService.saveNewMovies(movieRowList);
+        logger.info("resetData start");
 
+        try {
+
+            logger.info("Truncating all tables");
+            resetTablesService.resetTables();
+
+            logger.info("loading all movies and ratings");
+            tsvReaderService.loadFirstTime();
+
+            logger.info("resetData completed successfully");
+
+        }catch(ApplicationException e){
+
+            logger.error("Error during resetData",e);
+
+            emailService.sendErrorMail(e);
+        }
 
 
     }

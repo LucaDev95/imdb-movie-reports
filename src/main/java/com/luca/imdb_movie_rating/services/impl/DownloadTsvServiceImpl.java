@@ -1,19 +1,21 @@
 package com.luca.imdb_movie_rating.services.impl;
 
+import com.luca.imdb_movie_rating.config.ImdbProperties;
 import com.luca.imdb_movie_rating.services.DownloadTsvService;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 @Service
@@ -23,26 +25,23 @@ public class DownloadTsvServiceImpl implements DownloadTsvService {
 
     private String titleBasicsTsv="https://datasets.imdbws.com/title.basics.tsv.gz";
 
-    private String ratingsTsvFilePath="E:\\csv\\current\\title.ratings.tsv";
+    private String ratingsTsvFilePath="C:\\Users\\Utente\\OneDrive\\Desktop\\csv_imdb\\current\\title.ratings.tsv";
 
-    private String getTitleBasicsTsvSavePath="E:\\csv\\current\\title.basics.tsv";
+    private String getTitleBasicsTsvSavePath="C:\\Users\\Utente\\OneDrive\\Desktop\\csv_imdb\\current\\title.basics.tsv";
 
     private String compressExtension=".gz";
+
+    private final ImdbProperties imdbProperties;
+
+    public DownloadTsvServiceImpl(ImdbProperties imdbProperties){
+        this.imdbProperties=imdbProperties;
+    }
 
 
     @Override
     public void downloadTsv() {
 
-        // see all tsv at https://datasets.imdbws.com/
-       /* try {
-            downloadTsv(ratingsUrl,ratingsTsvFilePath);
-            System.out.println("File scaricato con successo: " + ratingsTsvFilePath);
-            downloadTsv(titleBasicsTsv,getTitleBasicsTsvSavePath);
-            System.out.println("File scaricato con successo: " + getTitleBasicsTsvSavePath);
-        } catch (IOException e) {
-            System.out.println("Errore durante il download: " + e.getMessage());
-        }*/
-
+            deletePreviousFiles();
 
             CompletableFuture<Void> ratingsDownload = downloadTsv(ratingsUrl, ratingsTsvFilePath).exceptionally(ex->{
                 System.out.println("Si è verificato un errore: " + ex.getMessage());
@@ -58,6 +57,31 @@ public class DownloadTsvServiceImpl implements DownloadTsvService {
 
 
     }
+
+    @Override
+    public void testReadZip() {
+        String urlString = imdbProperties.getBaseUrl()+imdbProperties.getBasicsGz();
+        System.out.println("basic path: "+urlString);
+
+        try( InputStream inputStream = URI.create(urlString).toURL().openStream()){
+
+            try (GZIPInputStream gzipStream = new GZIPInputStream(inputStream);
+                 InputStreamReader reader = new InputStreamReader(gzipStream);
+                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     public CompletableFuture<Void> downloadTsv(String gzUrl, String filePath) {
 
@@ -122,5 +146,17 @@ public class DownloadTsvServiceImpl implements DownloadTsvService {
 
 
 
+    }
+
+    private void deletePreviousFiles(){
+        Path directoryPath = Paths.get("C:\\Users\\Utente\\OneDrive\\Desktop\\csv_imdb\\current\\");
+
+        try (Stream<Path> paths = Files.walk(directoryPath)) {
+            paths.filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        } catch (IOException e) {
+            System.err.println("Errore durante l'elaborazione dei file: " + e.getMessage());
+        }
     }
 }

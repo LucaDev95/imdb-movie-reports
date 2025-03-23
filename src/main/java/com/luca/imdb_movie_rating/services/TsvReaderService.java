@@ -9,7 +9,13 @@ import java.util.Set;
 
 public interface TsvReaderService {
 
-    public List<MovieRow> readTitlesTsv(String tsvPath, Map<String,RatingRow> ratingMap);
+    public void readTitlesTsv();
 
-    public Map<String,RatingRow> readRatingsTsv(String tsvPath);
+    public void readRatingsTsv();
+
+    //public void readTitlesFirstTime();
+
+    public void loadFirstTime();
+
+
 }
