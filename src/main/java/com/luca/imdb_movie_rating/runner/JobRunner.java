@@ -1,7 +1,7 @@
 package com.luca.imdb_movie_rating.runner;
 
-import com.luca.imdb_movie_rating.services.LoadDailyService;
-import com.luca.imdb_movie_rating.services.ResetDataService;
+import com.luca.imdb_movie_rating.service.LoadDailyService;
+import com.luca.imdb_movie_rating.service.ResetDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;

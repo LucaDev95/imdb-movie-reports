@@ -37,16 +37,15 @@ imdb:
   basicsGz: title.basics.tsv.gz
   ratingsGz: title.ratings.tsv.gz
 
-loader:
+execution:
   tConstSelectSize: 500
   movieInsertSize: 500
   ratingInsertSize: 500
   maxPreviousYears: 2
   maxRatingDays: 1000
-
-summary:
   recipient: ${mail.recipient}
   summaryIntervalDays: 10
+
 
 
 
