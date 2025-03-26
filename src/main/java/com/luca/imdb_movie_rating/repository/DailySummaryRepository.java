@@ -18,22 +18,22 @@ public interface DailySummaryRepository extends JpaRepository<DailySummary,Long>
 
 
     @Query("select avg(r.averageRating) from Rating r")
-    public Double getOverallAvgRating();
+    public Double getTotalAvgRating();
 
     @Query("select count(mov.id) from Movie mov")
-    public Long getValuationMovies();
+    public Long getAnalyzedMovies();
 
-    @Query("select count(mov.id) from Movie mov where mov.insertDate=:valuationDate")
-    public Long getNewMovies(@Param("valuationDate") LocalDate localDate);
+    @Query("select count(mov.id) from Movie mov where mov.insertDate>=:startDate")
+    public Long getNewMovies(@Param("startDate") LocalDate startDate);
 
     @Query("select count(mov.id) from Movie mov where mov.isAdult=true")
     public Long getTotalNumAdultMovies();
 
-    @Query("select avg(mov.runtimeMinutes) from Movie mov where mov.insertDate=:valuationDate and mov.runtimeMinutes is not null")
-    public Double getAvgRuntimeMinutesByDate(@Param("valuationDate") LocalDate valuationDate);
+    @Query("select avg(mov.runtimeMinutes) from Movie mov where mov.insertDate>=:startDate and mov.runtimeMinutes is not null")
+    public Double getAvgRuntimeMinutesByDate(@Param("startDate") LocalDate startDate);
 
     @Query("select avg(mov.runtimeMinutes) from Movie mov where mov.runtimeMinutes is not null")
-    public Double getAvgOverallRuntimeMinutes();
+    public Double getAvgTotalRuntimeMinutes();
 
     @Modifying
     @Query("delete from DailySummary d where d.valuationDate=:date")

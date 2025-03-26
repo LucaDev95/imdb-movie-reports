@@ -1,10 +1,9 @@
 package com.luca.imdb_movie_rating.service.impl;
 
 import com.luca.imdb_movie_rating.config.ExecutionProperties;
-import com.luca.imdb_movie_rating.dto.DailySummaryDto;
-import com.luca.imdb_movie_rating.dto.DailySummaryGenreDto;
-import com.luca.imdb_movie_rating.dto.TrendingMovieDto;
+import com.luca.imdb_movie_rating.dto.*;
 import com.luca.imdb_movie_rating.entitiy.*;
+import com.luca.imdb_movie_rating.enums.Genre;
 import com.luca.imdb_movie_rating.repository.DailyGenreSummaryRepository;
 import com.luca.imdb_movie_rating.repository.DailySummaryRepository;
 import com.luca.imdb_movie_rating.repository.DailyTrendingMoviesSummaryRepository;
@@ -15,8 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SummaryServiceImpl implements SummaryService {
@@ -51,58 +51,47 @@ public class SummaryServiceImpl implements SummaryService {
 
         DailySummaryDto dto=new DailySummaryDto();
 
-        LocalDate today=LocalDate.now();
-        LocalDate yesterday=today.minusDays(1);
-
-        Double avgOverallRuntimeMinutes=dailySummaryRepository.getAvgOverallRuntimeMinutes();
-        Double avgDailyRuntimeMinutes=dailySummaryRepository.getAvgRuntimeMinutesByDate(today);
+        Double avgOverallRuntimeMinutes=dailySummaryRepository.getAvgTotalRuntimeMinutes();
+        Double avgDailyRuntimeMinutes=dailySummaryRepository.getAvgRuntimeMinutesByDate(executionProperties.getStartDate());
 
         Long totalNumAdultMovies=dailySummaryRepository.getTotalNumAdultMovies();
-        Long dailyNumAdultMovies=dailySummaryRepository.getNumAdultMoviesByDate(today);
 
-        Long newMovies = dailySummaryRepository.getNewMovies(today);
+        Long newMovies = dailySummaryRepository.getNewMovies(executionProperties.getStartDate());
 
-        Long numValuationMovies=dailySummaryRepository.getValuationMovies();
+        Long numValuationMovies=dailySummaryRepository.getAnalyzedMovies();
 
-        Double todayAvgRating=dailySummaryRepository.getAvgRatingByDate(today);
+        Double todayAvgRating=dailySummaryRepository.getAvgRatingByDate(executionProperties.getCurrentDate());
 
-        Double yesterdayAvgRating=dailySummaryRepository.getAvgRatingByDate(yesterday);
+        Double yesterdayAvgRating=dailySummaryRepository.getAvgRatingByDate(executionProperties.getStartDate());
 
-        Double overallAvgRating= dailySummaryRepository.getOverallAvgRating();
+        Double overallAvgRating= dailySummaryRepository.getTotalAvgRating();
 
-        Long sumVotesUntilToday = dailySummaryRepository.getSumNumVotesUntilDate(today);
+        Long sumVotesUntilToday = dailySummaryRepository.getSumNumVotesUntilDate(executionProperties.getCurrentDate());
 
-        Long sumVotesUntilYesterday = dailySummaryRepository.getSumNumVotesUntilDate(yesterday);
+        Long sumVotesUntilStartDate = dailySummaryRepository.getSumNumVotesUntilDate(executionProperties.getStartDate());
 
+        Long todayNumVotes=sumVotesUntilToday-sumVotesUntilStartDate;
 
-        Long todayNumVotes=sumVotesUntilToday-sumVotesUntilYesterday;
-
-        dto.setTodayNumMovies(newMovies);
+        dto.setNumNewMovies(newMovies);
         dto.setAvgRating(overallAvgRating);
-        dto.setMoviesValuated(numValuationMovies);
+        dto.setNumMoviesAnalyzed(numValuationMovies);
 
         dto.setAvgRatingVariation(todayAvgRating-yesterdayAvgRating);
 
-        dto.setOverallNumAdultMovies(totalNumAdultMovies);
-        dto.setOverallAvgRuntimeMinutes(avgOverallRuntimeMinutes);
+        dto.setNumTotalAdultMovies(totalNumAdultMovies);
+
+        dto.setTotalAvgDuration(avgOverallRuntimeMinutes);
 
         dto.setCurrentVoteDensity((double)todayNumVotes/numValuationMovies);
 
-        dto.setTodayAvgRuntimeMinutes(avgDailyRuntimeMinutes);
-
-        dto.setTodayNumAdultMovies(dailyNumAdultMovies);
-
+        dto.setNewMoviesAvgDuration(avgDailyRuntimeMinutes);
 
         dto.setTotalNumVotes(sumVotesUntilToday);
 
-        dto.setTodayNumVotes(todayNumVotes);
-        dto.setValuationStartDate(yesterday);
-        dto.setValuationDate(today);
-
+        dto.setNumNewVotes(todayNumVotes);
 
         dto.setTotalAvgNumVotes((double)sumVotesUntilToday/numValuationMovies);
-        dto.setOverallAdultMoviesPerc(((double)totalNumAdultMovies/numValuationMovies) *100);
-        dto.setTodayAdultMoviesPerc(((double)dailyNumAdultMovies/newMovies)*100);
+        dto.setTotalAdultMoviesPerc(((double)totalNumAdultMovies/numValuationMovies) *100);
 
         return dto;
     }
@@ -111,35 +100,34 @@ public class SummaryServiceImpl implements SummaryService {
     @Transactional(readOnly = true)
     public List<DailySummaryGenreDto> calculateDailySummaryByGenre() {
 
-        LocalDate today=LocalDate.now();
-        LocalDate yesterday=today.minusDays(1);
 
         List<DailySummaryGenreDto> genreDtoList=new ArrayList<>();
 
-        genreRepository.findAll().forEach(g->{
-            DailySummaryGenreDto dto=new DailySummaryGenreDto();
+        Map<Genre,DailySummaryGenreDto> summaryGenreMap= Arrays.stream(Genre.values()).collect(Collectors.toMap(g->g, DailySummaryGenreDto::new,(o1, o2)->o1,()->new EnumMap<>(Genre.class)));
 
-            Double avgOverallRuntimeMinutes=dailyGenreSummaryRepository.getAvgOverallRuntimeMinutes(g.getGenreId());
-            Double avgDailyRuntimeMinutes=dailyGenreSummaryRepository.getAvgRuntimeMinutesByDate(g.getGenreId(),today);
+        Map<Genre,Double> totalAvgDuration= collectDoubleMap(dailyGenreSummaryRepository.getAvgTotalRuntimeMinutes());
 
-            Long totalNumAdultMovies=dailyGenreSummaryRepository.getTotalNumAdultMovies(g.getGenreId());
-            Long dailyNumAdultMovies=dailyGenreSummaryRepository.getNumAdultMoviesByDate(g.getGenreId(),today);
+        Map<Genre,Double> avgOverallRuntimeMinutes=collectDoubleMap(dailyGenreSummaryRepository.getAvgTotalRuntimeMinutes());
 
-            Long newMovies = dailyGenreSummaryRepository.getNewMovies(g.getGenreId(),today);
+        Map<Genre,Double> avgDailyRuntimeMinutes=collectDoubleMap(dailyGenreSummaryRepository.getAvgRuntimeMinutesByDate(executionProperties.getStartDate()));
 
-            Long numValuationMovies=dailyGenreSummaryRepository.getValuationMovies(g.getGenreId());
+        Map<Genre,Long> totalNumAdultMovies=collectLongMap(dailyGenreSummaryRepository.getTotalNumAdultMovies());
 
-            Double todayAvgRating=dailyGenreSummaryRepository.getAvgRatingByDate(g.getGenreId(),today);
+        Map<Genre,Long> newMovies = collectLongMap(dailyGenreSummaryRepository.getNewMovies(executionProperties.getStartDate()));
 
-            Double yesterdayAvgRating=dailyGenreSummaryRepository.getAvgRatingByDate(g.getGenreId(),yesterday);
+        Map<Genre,Long> numValuationMovies=collectLongMap(dailyGenreSummaryRepository.getMoviesAnalyzed());
 
-            Double overallAvgRating= dailyGenreSummaryRepository.getOverallAvgRating(g.getGenreId());
+        Map<Genre,Double> todayAvgRating=collectDoubleMap(dailyGenreSummaryRepository.getAvgRatingByDate(executionProperties.getCurrentDate()));
 
-            Long sumVotesUntilToday = dailyGenreSummaryRepository.getSumNumVotesUntilDate(g.getGenreId(),today);
+        Map<Genre,Double> yesterdayAvgRating=collectDoubleMap(dailyGenreSummaryRepository.getAvgRatingByDate(executionProperties.getStartDate()));
 
-            Long sumVotesUntilYesterday = dailyGenreSummaryRepository.getSumNumVotesUntilDate(g.getGenreId(),yesterday);
+        Map<Genre,Double> overallAvgRating= collectDoubleMap(dailyGenreSummaryRepository.getTotalAvgRating());
 
+        Map<Genre,Long> sumVotesUntilToday = collectLongMap(dailyGenreSummaryRepository.getSumNumVotesUntilDate(executionProperties.getCurrentDate()));
 
+        Map<Genre,Long> sumVotesUntilYesterday = collectLongMap(dailyGenreSummaryRepository.getSumNumVotesUntilDate(executionProperties.getStartDate()));
+
+        
             Long todayNumVotes=sumVotesUntilToday-sumVotesUntilYesterday;
 
             dto.setTodayNumMovies(newMovies);
@@ -171,7 +159,7 @@ public class SummaryServiceImpl implements SummaryService {
 
             genreDtoList.add(dto);
 
-        });
+
 
 
         return genreDtoList;
@@ -215,28 +203,24 @@ public class SummaryServiceImpl implements SummaryService {
 
         DailySummary dailySummary=new DailySummary();
         dailySummary.setAvgRating(dailySummaryDto.getAvgRating());
-        dailySummary.setMoviesValuated(dailySummaryDto.getMoviesValuated());
+        dailySummary.setNumMoviesAnalyzed(dailySummaryDto.getNumMoviesAnalyzed());
 
         dailySummary.setAvgRatingVariation(dailySummaryDto.getAvgRatingVariation());
         dailySummary.setAvgRating(dailySummaryDto.getAvgRating());
-        dailySummary.setOverallAvgRuntimeMinutes(dailySummaryDto.getOverallAvgRuntimeMinutes());
+        dailySummary.setTotalAvgDuration(dailySummaryDto.getTotalAvgDuration());
 
-        dailySummary.setOverallNumAdultMovies(dailySummaryDto.getOverallNumAdultMovies());
-        dailySummary.setTodayNumAdultMovies(dailySummaryDto.getTodayNumAdultMovies());
-        dailySummary.setValuationStartDate(today.minusDays(1));
-        dailySummary.setValuationDate(today);
+        dailySummary.setNumTotalAdultMovies(dailySummaryDto.getNumTotalAdultMovies());
 
-        dailySummary.setTotalNumVotes(dailySummaryDto.getTotalNumVotes());
+        dailySummary.setNumTotalVotes(dailySummaryDto.getTotalNumVotes());
         dailySummary.setTotalAvgNumVotes(dailySummaryDto.getTotalAvgNumVotes());
 
-        dailySummary.setTodayNumMovies(dailySummaryDto.getTodayNumMovies());
-        dailySummary.setTodayNumVotes(dailySummaryDto.getTodayNumVotes());
+        dailySummary.setNumNewMovies(dailySummaryDto.getNumNewMovies());
+        dailySummary.setNumNewVotes(dailySummaryDto.getNumNewVotes());
 
         dailySummary.setCurrentVoteDensity(dailySummaryDto.getCurrentVoteDensity());
-        dailySummary.setTodayAvgRuntimeMinutes(dailySummaryDto.getTodayAvgRuntimeMinutes());
+        dailySummary.setNewMoviesAvgDuration(dailySummaryDto.getNewMoviesAvgDuration());
 
-        dailySummary.setOverallAdultMoviesPerc(dailySummaryDto.getOverallAdultMoviesPerc());
-        dailySummary.setTodayAdultMoviesPerc(dailySummaryDto.getTodayAdultMoviesPerc());
+        dailySummary.setTotalAdultMoviesPerc(dailySummaryDto.getTotalAdultMoviesPerc());
 
         dailySummaryRepository.save(dailySummary);
 
@@ -303,5 +287,12 @@ public class SummaryServiceImpl implements SummaryService {
         dailyGenreSummaryRepository.deleteByEndRatingDate(today);
     }
 
+    private Map<Genre,Double> collectDoubleMap(List<GenreSummaryDoubleResult> resultList){
+        return resultList.stream().collect(Collectors.toMap(GenreSummaryResult::getGenre, GenreSummaryDoubleResult::getValue,(o1,o2)->o1,()->new EnumMap<>(Genre.class)));
+    }
+
+    private Map<Genre,Long> collectLongMap(List<GenreSummaryLongResult> resultList){
+        return resultList.stream().collect(Collectors.toMap(GenreSummaryResult::getGenre, GenreSummaryLongResult::getValue,(o1,o2)->o1,()->new EnumMap<>(Genre.class)));
+    }
 
 }

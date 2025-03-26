@@ -80,11 +80,11 @@ public class ReportServiceImpl implements ReportService {
 
     private String getSummaryLine(DailySummaryDto dto, String genre, String startDate, String endDate) {
 
-        return String.join(",", genre, dto.getMoviesValuated().toString(), dto.getNumNewMovies().toString(), dto.getTotalNumVotes().toString()
+        return String.join(",", genre, dto.getNumMoviesAnalyzed().toString(), dto.getNumNewMovies().toString(), dto.getTotalNumVotes().toString()
                 , dto.getNumNewVotes().toString(), formatDouble(dto.getTotalAvgNumVotes()), formatDouble(dto.getCurrentVoteDensity()), formatDouble(dto.getAvgRating())
-                , formatDouble(dto.getAvgRatingVariation()), dto.getOverallAvgRuntimeMinutes() != null ? formatDuration(dto.getOverallAvgRuntimeMinutes().intValue()) : "NA",
+                , formatDouble(dto.getAvgRatingVariation()), dto.getTotalAvgDuration() != null ? formatDuration(dto.getTotalAvgDuration().intValue()) : "NA",
                 dto.getNewMoviesAvgDuration() != null ? formatDuration(dto.getNewMoviesAvgDuration().intValue()) : "NA"
-                , dto.getTodayNumAdultMovies().toString(), formatPercentage(dto.getOverallAdultMoviesPerc()), startDate, endDate) + "\n";
+                , dto.getNumTotalAdultMovies().toString(), formatPercentage(dto.getTotalAdultMoviesPerc()), startDate, endDate) + "\n";
     }
 
 

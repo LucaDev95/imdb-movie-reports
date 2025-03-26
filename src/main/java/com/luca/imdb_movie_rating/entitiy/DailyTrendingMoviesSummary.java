@@ -16,7 +16,7 @@ public class DailyTrendingMoviesSummary {
 
     @OneToOne
     @JoinColumn(name = "rating_start_id")
-    private Rating startRatig;
+    private Rating startRating;
 
     @OneToOne
     @JoinColumn(name = "rating_end_id")
@@ -40,14 +40,6 @@ public class DailyTrendingMoviesSummary {
         this.movie = movie;
     }
 
-    public Rating getStartRatig() {
-        return startRatig;
-    }
-
-    public void setStartRatig(Rating startRatig) {
-        this.startRatig = startRatig;
-    }
-
     public Rating getEndRating() {
         return endRating;
     }
@@ -62,5 +54,13 @@ public class DailyTrendingMoviesSummary {
 
     public void setPosition(Integer position) {
         this.position = position;
+    }
+
+    public Rating getStartRating() {
+        return startRating;
+    }
+
+    public void setStartRating(Rating startRating) {
+        this.startRating = startRating;
     }
 }

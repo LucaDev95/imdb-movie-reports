@@ -4,6 +4,10 @@ public class DailySummaryGenreDto extends DailySummaryDto {
 
     private Genre genre;
 
+    public DailySummaryGenreDto(Genre genre){
+        this.genre=genre;
+    }
+
     public Genre getGenre() {
         return genre;
     }

@@ -13,29 +13,29 @@ import java.util.List;
 
 public interface DailyGenreSummaryRepository extends JpaRepository<DailyGenreSummary,Long> {
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(sum(r.numVotes),g.genre) from Rating r join r.movie m join m.genreList g where g.genreId=:genreId and r.insertDate=:valuationDate group by g.genre")
-    public List<GenreSummaryLongResult> getSumNumVotesUntilDate(@Param("genreId") Integer genreId, @Param("valuationDate")LocalDate localDate);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(sum(r.numVotes),g.genre) from Rating r join r.movie m join m.genreList g where r.insertDate=:valuationDate group by g.genre")
+    public List<GenreSummaryLongResult> getSumNumVotesUntilDate(@Param("valuationDate")LocalDate localDate);
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryDoubleResult(avg(r.averageRating),g.genre) from Rating r join r.movie m join m.genreList g where g.genreId=:genreId and r.insertDate=:valuationDate group by g.genre")
-    public List<GenreSummaryDoubleResult> getAvgRatingByDate(@Param("genreId") Integer genreId, @Param("valuationDate") LocalDate localDate);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryDoubleResult(avg(r.averageRating),g.genre) from Rating r join r.movie m join m.genreList g where r.insertDate=:valuationDate group by g.genre")
+    public List<GenreSummaryDoubleResult> getAvgRatingByDate(@Param("valuationDate") LocalDate localDate);
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryDoubleResult(avg(r.averageRating),g.genre) from Rating r join r.movie m join m.genreList g where g.genreId=:genreId group by g.genre")
-    public List<GenreSummaryDoubleResult> getOverallAvgRating(@Param("genreId") Integer genreId);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryDoubleResult(avg(r.averageRating),g.genre) from Rating r join r.movie m join m.genreList g group by g.genre")
+    public List<GenreSummaryDoubleResult> getTotalAvgRating();
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(count(m.id),g.genre) from Movie m join m.genreList g where g.genreId=:genreId group by g.genre")
-    public List<GenreSummaryLongResult> getValuationMovies(@Param("genreId") Integer genreId);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(count(m.id),g.genre) from Movie m join m.genreList g group by g.genre")
+    public List<GenreSummaryLongResult> getMoviesAnalyzed();
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(count(m.id),g.genre) from Movie m join m.genreList g where g.genreId=:genreId and m.insertDate=:valuationDate group by g.genre")
-    public List<GenreSummaryLongResult> getNewMovies(@Param("genreId") Integer genreId,@Param("valuationDate") LocalDate localDate);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(count(m.id),g.genre) from Movie m join m.genreList g where m.insertDate>=:startDate group by g.genre")
+    public List<GenreSummaryLongResult> getNewMovies(@Param("startDate") LocalDate startDate);
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(count(m.id),g.genre) from Movie m join m.genreList g where g.genreId=:genreId and m.isAdult=true group by g.genre")
-    public List<GenreSummaryLongResult> getTotalNumAdultMovies(@Param("genreId") Integer genreId);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(count(m.id),g.genre) from Movie m join m.genreList g where m.isAdult=true group by g.genre")
+    public List<GenreSummaryLongResult> getTotalNumAdultMovies();
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(avg(m.runtimeMinutes),g.genre) from Movie m join m.genreList g where g.genreId=:genreId and m.insertDate=:valuationDate and m.runtimeMinutes is not null group by g.genre")
-    public  List<GenreSummaryDoubleResult> getAvgRuntimeMinutesByDate(@Param("genreId") Integer genreId,@Param("valuationDate") LocalDate valuationDate);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(avg(m.runtimeMinutes),g.genre) from Movie m join m.genreList g where m.insertDate>=:startDate and m.runtimeMinutes is not null group by g.genre")
+    public  List<GenreSummaryDoubleResult> getAvgRuntimeMinutesByDate(@Param("startDate") LocalDate startDate);
 
-    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(avg(m.runtimeMinutes),g.genre) from Movie m join m.genreList g where g.genreId=:genreId and m.runtimeMinutes is not null group by g.genre")
-    public  List<GenreSummaryDoubleResult> getAvgOverallRuntimeMinutes(@Param("genreId") Integer genreId);
+    @Query("select new com.luca.imdb_movie_rating.dto.GenreSummaryLongResult(avg(m.runtimeMinutes),g.genre) from Movie m join m.genreList g where m.runtimeMinutes is not null group by g.genre")
+    public  List<GenreSummaryDoubleResult> getAvgTotalRuntimeMinutes();
 
     @Modifying
     @Query("delete from DailyGenreSummary d where d.valuationDate=:date")

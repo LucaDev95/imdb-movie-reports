@@ -8,54 +8,48 @@ import java.time.LocalDate;
 @MappedSuperclass
 public abstract class Summary {
 
-    private Long todayNumVotes;
+    private Long numNewVotes;
 
-    private Long totalNumVotes;
+    private Long numTotalVotes;
 
     private Double avgRating;
 
     private Double avgRatingVariation;
 
-    private Long moviesValuated;
+    private Long numMoviesAnalyzed;
 
     private Double currentVoteDensity;
 
-    // ntotalNumVotes / moviesValuated
     private Double totalAvgNumVotes;
 
-    private Long todayNumMovies;
+    private Long numNewMovies;
 
-    private Long todayNumAdultMovies;
+    private Long numTotalAdultMovies;
 
-    private Long overallNumAdultMovies;
+    private Double totalAdultMoviesPerc;
 
-    private Double todayAdultMoviesPerc;
+    private Double newMoviesAvgDuration;
 
-    //overallNumAdultMovies / moviesValuated
-    private Double overallAdultMoviesPerc;
+    private Double totalAvgDuration;
 
-    private Double todayAvgRuntimeMinutes;
+    private LocalDate endDate;
 
-    private Double overallAvgRuntimeMinutes;
+    private LocalDate startDate;
 
-    private LocalDate valuationDate;
-
-    private LocalDate valuationStartDate;
-
-    public Long getTodayNumVotes() {
-        return todayNumVotes;
+    public Long getNumNewVotes() {
+        return numNewVotes;
     }
 
-    public void setTodayNumVotes(Long todayNumVotes) {
-        this.todayNumVotes = todayNumVotes;
+    public void setNumNewVotes(Long numNewVotes) {
+        this.numNewVotes = numNewVotes;
     }
 
-    public Long getTotalNumVotes() {
-        return totalNumVotes;
+    public Long getNumTotalVotes() {
+        return numTotalVotes;
     }
 
-    public void setTotalNumVotes(Long totalNumVotes) {
-        this.totalNumVotes = totalNumVotes;
+    public void setNumTotalVotes(Long numTotalVotes) {
+        this.numTotalVotes = numTotalVotes;
     }
 
     public Double getAvgRating() {
@@ -66,14 +60,29 @@ public abstract class Summary {
         this.avgRating = avgRating;
     }
 
-    public Long getMoviesValuated() {
-        return moviesValuated;
+    public Double getAvgRatingVariation() {
+        return avgRatingVariation;
     }
 
-    public void setMoviesValuated(Long moviesValuated) {
-        this.moviesValuated = moviesValuated;
+    public void setAvgRatingVariation(Double avgRatingVariation) {
+        this.avgRatingVariation = avgRatingVariation;
     }
 
+    public Long getNumMoviesAnalyzed() {
+        return numMoviesAnalyzed;
+    }
+
+    public void setNumMoviesAnalyzed(Long numMoviesAnalyzed) {
+        this.numMoviesAnalyzed = numMoviesAnalyzed;
+    }
+
+    public Double getCurrentVoteDensity() {
+        return currentVoteDensity;
+    }
+
+    public void setCurrentVoteDensity(Double currentVoteDensity) {
+        this.currentVoteDensity = currentVoteDensity;
+    }
 
     public Double getTotalAvgNumVotes() {
         return totalAvgNumVotes;
@@ -83,92 +92,60 @@ public abstract class Summary {
         this.totalAvgNumVotes = totalAvgNumVotes;
     }
 
-
-    public Double getAvgRatingVariation() {
-        return avgRatingVariation;
+    public Long getNumNewMovies() {
+        return numNewMovies;
     }
 
-    public void setAvgRatingVariation(Double avgRatingVariation) {
-        this.avgRatingVariation = avgRatingVariation;
+    public void setNumNewMovies(Long numNewMovies) {
+        this.numNewMovies = numNewMovies;
     }
 
-    public Double getTodayAdultMoviesPerc() {
-        return todayAdultMoviesPerc;
+    public Double getTotalAdultMoviesPerc() {
+        return totalAdultMoviesPerc;
     }
 
-    public void setTodayAdultMoviesPerc(Double todayAdultMoviesPerc) {
-        this.todayAdultMoviesPerc = todayAdultMoviesPerc;
+    public void setTotalAdultMoviesPerc(Double totalAdultMoviesPerc) {
+        this.totalAdultMoviesPerc = totalAdultMoviesPerc;
     }
 
-    public Long getTodayNumMovies() {
-        return todayNumMovies;
+
+    public LocalDate getEndDate() {
+        return endDate;
     }
 
-    public void setTodayNumMovies(Long todayNumMovies) {
-        this.todayNumMovies = todayNumMovies;
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
-    public Long getTodayNumAdultMovies() {
-        return todayNumAdultMovies;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setTodayNumAdultMovies(Long todayNumAdultMovies) {
-        this.todayNumAdultMovies = todayNumAdultMovies;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
 
-    public Long getOverallNumAdultMovies() {
-        return overallNumAdultMovies;
+    public Long getNumTotalAdultMovies() {
+        return numTotalAdultMovies;
     }
 
-    public void setOverallNumAdultMovies(Long overallNumAdultMovies) {
-        this.overallNumAdultMovies = overallNumAdultMovies;
+    public void setNumTotalAdultMovies(Long numTotalAdultMovies) {
+        this.numTotalAdultMovies = numTotalAdultMovies;
     }
 
-    public Double getOverallAdultMoviesPerc() {
-        return overallAdultMoviesPerc;
+    public Double getNewMoviesAvgDuration() {
+        return newMoviesAvgDuration;
     }
 
-    public void setOverallAdultMoviesPerc(Double overallAdultMoviesPerc) {
-        this.overallAdultMoviesPerc = overallAdultMoviesPerc;
+    public void setNewMoviesAvgDuration(Double newMoviesAvgDuration) {
+        this.newMoviesAvgDuration = newMoviesAvgDuration;
     }
 
-    public Double getTodayAvgRuntimeMinutes() {
-        return todayAvgRuntimeMinutes;
+    public Double getTotalAvgDuration() {
+        return totalAvgDuration;
     }
 
-    public void setTodayAvgRuntimeMinutes(Double todayAvgRuntimeMinutes) {
-        this.todayAvgRuntimeMinutes = todayAvgRuntimeMinutes;
-    }
-
-    public Double getOverallAvgRuntimeMinutes() {
-        return overallAvgRuntimeMinutes;
-    }
-
-    public void setOverallAvgRuntimeMinutes(Double overallAvgRuntimeMinutes) {
-        this.overallAvgRuntimeMinutes = overallAvgRuntimeMinutes;
-    }
-
-    public LocalDate getValuationDate() {
-        return valuationDate;
-    }
-
-    public void setValuationDate(LocalDate valuationDate) {
-        this.valuationDate = valuationDate;
-    }
-
-    public LocalDate getValuationStartDate() {
-        return valuationStartDate;
-    }
-
-    public void setValuationStartDate(LocalDate valuationStartDate) {
-        this.valuationStartDate = valuationStartDate;
-    }
-
-    public Double getCurrentVoteDensity() {
-        return currentVoteDensity;
-    }
-
-    public void setCurrentVoteDensity(Double currentVoteDensity) {
-        this.currentVoteDensity = currentVoteDensity;
+    public void setTotalAvgDuration(Double totalAvgDuration) {
+        this.totalAvgDuration = totalAvgDuration;
     }
 }

@@ -10,7 +10,7 @@ public class DailySummaryDto {
 
     private Double avgRatingVariation;
 
-    private Long moviesValuated;
+    private Long numMoviesAnalyzed;
 
     private Double currentVoteDensity;
 
@@ -18,13 +18,12 @@ public class DailySummaryDto {
 
     private Long numNewMovies;
 
-    private Long todayNumAdultMovies;
+    private Long numTotalAdultMovies;
 
-    private Double overallAdultMoviesPerc;
+    private Double totalAdultMoviesPerc;
 
     private Double newMoviesAvgDuration;
-
-    private Double overallAvgRuntimeMinutes;
+    private Double totalAvgDuration;
 
     public Long getNumNewVotes() {
         return numNewVotes;
@@ -58,13 +57,6 @@ public class DailySummaryDto {
         this.avgRatingVariation = avgRatingVariation;
     }
 
-    public Long getMoviesValuated() {
-        return moviesValuated;
-    }
-
-    public void setMoviesValuated(Long moviesValuated) {
-        this.moviesValuated = moviesValuated;
-    }
 
     public Double getCurrentVoteDensity() {
         return currentVoteDensity;
@@ -90,20 +82,13 @@ public class DailySummaryDto {
         this.numNewMovies = numNewMovies;
     }
 
-    public Long getTodayNumAdultMovies() {
-        return todayNumAdultMovies;
+
+    public Double getTotalAdultMoviesPerc() {
+        return totalAdultMoviesPerc;
     }
 
-    public void setTodayNumAdultMovies(Long todayNumAdultMovies) {
-        this.todayNumAdultMovies = todayNumAdultMovies;
-    }
-
-    public Double getOverallAdultMoviesPerc() {
-        return overallAdultMoviesPerc;
-    }
-
-    public void setOverallAdultMoviesPerc(Double overallAdultMoviesPerc) {
-        this.overallAdultMoviesPerc = overallAdultMoviesPerc;
+    public void setTotalAdultMoviesPerc(Double totalAdultMoviesPerc) {
+        this.totalAdultMoviesPerc = totalAdultMoviesPerc;
     }
 
     public Double getNewMoviesAvgDuration() {
@@ -114,12 +99,27 @@ public class DailySummaryDto {
         this.newMoviesAvgDuration = newMoviesAvgDuration;
     }
 
-    public Double getOverallAvgRuntimeMinutes() {
-        return overallAvgRuntimeMinutes;
+    public Long getNumMoviesAnalyzed() {
+        return numMoviesAnalyzed;
     }
 
-    public void setOverallAvgRuntimeMinutes(Double overallAvgRuntimeMinutes) {
-        this.overallAvgRuntimeMinutes = overallAvgRuntimeMinutes;
+    public void setNumMoviesAnalyzed(Long numMoviesAnalyzed) {
+        this.numMoviesAnalyzed = numMoviesAnalyzed;
     }
 
+    public Long getNumTotalAdultMovies() {
+        return numTotalAdultMovies;
+    }
+
+    public void setNumTotalAdultMovies(Long numTotalAdultMovies) {
+        this.numTotalAdultMovies = numTotalAdultMovies;
+    }
+
+    public Double getTotalAvgDuration() {
+        return totalAvgDuration;
+    }
+
+    public void setTotalAvgDuration(Double totalAvgDuration) {
+        this.totalAvgDuration = totalAvgDuration;
+    }
 }
