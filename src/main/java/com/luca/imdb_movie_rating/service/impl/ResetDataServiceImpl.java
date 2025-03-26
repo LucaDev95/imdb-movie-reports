@@ -46,6 +46,8 @@ public class ResetDataServiceImpl implements ResetDataService {
             logger.error("Error during resetData",e);
 
             emailService.sendErrorMail(e);
+        }catch(Exception e){
+            logger.error("Unhandled exception ",e);
         }
 
 

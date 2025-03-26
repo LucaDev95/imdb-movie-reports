@@ -14,6 +14,9 @@ public class DailyGenreSummary extends Summary{
     @JoinColumn(name="genre_id",nullable = false)
     private GenreEntity genre;
 
+    @ManyToOne
+    @JoinColumn(name="daily_summary_id")
+    private DailySummary dailySummary;
 
     public Long getId() {
         return id;

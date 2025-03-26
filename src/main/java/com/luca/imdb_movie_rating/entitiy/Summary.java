@@ -32,9 +32,7 @@ public abstract class Summary {
 
     private Double totalAvgDuration;
 
-    private LocalDate endDate;
 
-    private LocalDate startDate;
 
     public Long getNumNewVotes() {
         return numNewVotes;
@@ -106,23 +104,6 @@ public abstract class Summary {
 
     public void setTotalAdultMoviesPerc(Double totalAdultMoviesPerc) {
         this.totalAdultMoviesPerc = totalAdultMoviesPerc;
-    }
-
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
     }
 
     public Long getNumTotalAdultMovies() {
