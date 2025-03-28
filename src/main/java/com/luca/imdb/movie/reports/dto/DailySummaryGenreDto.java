@@ -16,4 +16,24 @@ public class DailySummaryGenreDto extends DailySummaryDto {
     public void setGenre(Genre genre) {
         this.genre = genre;
     }
+
+
+    @Override
+    public String toString() {
+        return "DailySummaryGenreDto{" +
+                "totalNumVotes=" + getTotalNumVotes() +
+                ", avgRating=" + getAvgRating() +
+                ", avgRatingVariation=" + getAvgRatingVariation() +
+                ", totalAvgNumVotes=" + getTotalAvgNumVotes() +
+                ", totalAdultMoviesPerc=" + getTotalAdultMoviesPerc() +
+                ", newMoviesAvgDuration=" + getNewMoviesAvgDuration() +
+                ", numMoviesAnalyzed=" + getNumMoviesAnalyzed() +
+                ", numTotalAdultMovies=" + getNumTotalAdultMovies() +
+                ", totalAvgDuration=" + getTotalAvgDuration() +
+                ", numNewMovies=" + getNumNewMovies() +
+                ", currentVoteDensity=" + getCurrentVoteDensity() +
+                ", numNewVotes=" + getNumNewVotes() +
+                ", genre=" + getGenre() +
+                '}';
+    }
 }

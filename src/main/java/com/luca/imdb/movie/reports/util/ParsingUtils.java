@@ -65,13 +65,13 @@ public class ParsingUtils {
         return movieArr[ORIGINAL_TITLE];
     }
 
-    public static MovieRow parseOtherFields(String[] movieArr,MovieRow movieRow){
+    public static void parseMovieFields(String[] movieArr,MovieRow movieRow){
         movieRow.setAdult(parseIsAdult(movieArr));
         movieRow.setGenres(parseGenreList(movieArr));
         movieRow.setOriginalTitle(parseOriginalTitle(movieArr));
         movieRow.setPrimaryTitle(parsePrimaryTitle(movieArr));
         movieRow.setRuntimeMinutes(parseRuntimeMinutes(movieArr));
-        return movieRow;
+
     }
 
 

@@ -2,7 +2,7 @@ package com.luca.imdb.movie.reports.service.impl;
 import com.luca.imdb.movie.reports.exception.ApplicationException;
 import com.luca.imdb.movie.reports.service.EmailService;
 import com.luca.imdb.movie.reports.service.ResetTablesService;
-import com.luca.imdb.movie.reports.service.TsvReaderService;
+import com.luca.imdb.movie.reports.service.TsvLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,13 @@ public class ResetDataServiceImpl implements ResetDataService {
 
     private final ResetTablesService resetTablesService;
 
-    private final TsvReaderService tsvReaderService;
+    private final TsvLoaderService tsvLoaderService;
 
     private final EmailService emailService;
 
-    public ResetDataServiceImpl( ResetTablesService resetTablesService, TsvReaderService tsvReaderService, EmailService emailService) {
+    public ResetDataServiceImpl(ResetTablesService resetTablesService, TsvLoaderService tsvLoaderService, EmailService emailService) {
         this.resetTablesService=resetTablesService;
-        this.tsvReaderService=tsvReaderService;
+        this.tsvLoaderService=tsvLoaderService;
         this.emailService=emailService;
     }
 
@@ -37,7 +37,7 @@ public class ResetDataServiceImpl implements ResetDataService {
             resetTablesService.resetTables();
 
             logger.info("loading all movies and ratings");
-            tsvReaderService.loadFirstTime();
+            tsvLoaderService.reload();
 
             logger.info("resetData completed successfully");
 

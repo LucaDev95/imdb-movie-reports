@@ -49,9 +49,6 @@ public class TrendingMovieDto{
         return genreList;
     }
 
-    public void setGenreList(List<Genre> genreList) {
-        this.genreList = genreList;
-    }
 
     public Long getMovieId() {
         return movieId;
@@ -163,5 +160,26 @@ public class TrendingMovieDto{
 
     public void setPosition(Integer position) {
         this.position = position;
+    }
+
+    @Override
+    public String toString() {
+        return "TrendingMovieDto{" +
+                "genreList=" + genreList +
+                ", movieId=" + movieId +
+                ", startRatingId=" + startRatingId +
+                ", endRatingId=" + endRatingId +
+                ", tConst='" + tConst + '\'' +
+                ", numVotesDiff=" + numVotesDiff +
+                ", currentNumVotes=" + currentNumVotes +
+                ", avgRatingDiff=" + avgRatingDiff +
+                ", currentAvgRating=" + currentAvgRating +
+                ", primaryTitle='" + primaryTitle + '\'' +
+                ", origTitle='" + origTitle + '\'' +
+                ", isAdult=" + isAdult +
+                ", runtimeMinutes=" + runtimeMinutes +
+                ", year=" + year +
+                ", position=" + position +
+                '}';
     }
 }

@@ -13,6 +13,8 @@ import com.luca.imdb.movie.reports.repository.SummaryRepository;
 import com.luca.imdb.movie.reports.repository.TrendingMoviesSummaryRepository;
 import com.luca.imdb.movie.reports.repository.GenreRepository;
 import jakarta.persistence.EntityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class SummaryServiceImpl implements SummaryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SummaryServiceImpl.class);
 
     private final TrendingMoviesSummaryRepository dailyTrendingMoviesRepository;
 
@@ -96,15 +100,15 @@ public class SummaryServiceImpl implements SummaryService {
         dto.setTotalAvgNumVotes((double)sumVotesUntilToday/numValuationMovies);
         dto.setTotalAdultMoviesPerc(((double)totalNumAdultMovies/numValuationMovies) *100);
 
+
+        logger.info("Summary is: {}",dto);
+
         return dto;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<DailySummaryGenreDto> calculateDailySummaryByGenre() {
-
-
-        List<DailySummaryGenreDto> genreDtoList=new ArrayList<>();
 
         Map<Genre,DailySummaryGenreDto> summaryGenreMap= Arrays.stream(Genre.values()).collect(Collectors.toMap(g->g, DailySummaryGenreDto::new,(o1, o2)->o1,()->new EnumMap<>(Genre.class)));
 
@@ -157,6 +161,8 @@ public class SummaryServiceImpl implements SummaryService {
 
             dto.setTotalAdultMoviesPerc(((double)dto.getNumTotalAdultMovies()/dto.getNumMoviesAnalyzed())*100);
 
+            logger.info("Genre Summary is: {}",dto);
+
         }
 
         
@@ -169,7 +175,9 @@ public class SummaryServiceImpl implements SummaryService {
     @Override
     @Transactional(readOnly = true)
     public List<TrendingMovieDto> getDailyTrendingMoviesSummary() throws IOException {
-        return dailyTrendingMoviesRepository.findTrendingMoviesSummary(executionProperties.getStartDate(),executionProperties.getCurrentDate());
+        List<TrendingMovieDto> trendingMovieDtoList= dailyTrendingMoviesRepository.findTrendingMoviesSummary(executionProperties.getStartDate(),executionProperties.getCurrentDate());
+        trendingMovieDtoList.forEach(t->logger.info("Trending movie : {}",t));
+        return trendingMovieDtoList;
     }
 
     @Override
@@ -234,9 +242,7 @@ public class SummaryServiceImpl implements SummaryService {
 
         dailyTrendingMoviesRepository.deleteByEndRatingDate(executionProperties.getCurrentDate());
 
-        Summary summary=dailySummaryRepository.findByEndDate(executionProperties.getCurrentDate());
-
-        dailySummaryRepository.delete(summary);
+        dailySummaryRepository.findByEndDate(executionProperties.getCurrentDate()).ifPresent(dailySummaryRepository::delete);
 
     }
 

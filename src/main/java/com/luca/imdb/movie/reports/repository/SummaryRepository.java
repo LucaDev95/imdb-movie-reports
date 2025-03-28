@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface SummaryRepository extends JpaRepository<Summary,Long> {
 
@@ -43,7 +44,7 @@ public interface SummaryRepository extends JpaRepository<Summary,Long> {
     @Query(value = "truncate summary CASCADE",nativeQuery = true)
     public void truncate();
 
-    public Summary findByEndDate(LocalDate endDate);
+    public Optional<Summary> findByEndDate(LocalDate endDate);
 
 
 }

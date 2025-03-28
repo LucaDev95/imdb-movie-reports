@@ -122,4 +122,22 @@ public class DailySummaryDto {
     public void setTotalAvgDuration(Double totalAvgDuration) {
         this.totalAvgDuration = totalAvgDuration;
     }
+
+    @Override
+    public String toString() {
+        return "DailySummaryDto{" +
+                "numNewVotes=" + numNewVotes +
+                ", totalNumVotes=" + totalNumVotes +
+                ", avgRating=" + avgRating +
+                ", avgRatingVariation=" + avgRatingVariation +
+                ", numMoviesAnalyzed=" + numMoviesAnalyzed +
+                ", currentVoteDensity=" + currentVoteDensity +
+                ", totalAvgNumVotes=" + totalAvgNumVotes +
+                ", numNewMovies=" + numNewMovies +
+                ", numTotalAdultMovies=" + numTotalAdultMovies +
+                ", totalAdultMoviesPerc=" + totalAdultMoviesPerc +
+                ", newMoviesAvgDuration=" + newMoviesAvgDuration +
+                ", totalAvgDuration=" + totalAvgDuration +
+                '}';
+    }
 }

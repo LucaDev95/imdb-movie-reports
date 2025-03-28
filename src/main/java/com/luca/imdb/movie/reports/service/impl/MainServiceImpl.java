@@ -21,7 +21,7 @@ public class MainServiceImpl implements MainService {
 
     private final MovieService movieService;
 
-    private final TsvReaderService tsvReaderService;
+    private final TsvLoaderService tsvLoaderService;
 
     private final RatingService ratingService;
 
@@ -31,9 +31,9 @@ public class MainServiceImpl implements MainService {
 
     private final ReportService reportService;
 
-    public MainServiceImpl(MovieService movieService, TsvReaderService tsvReaderService, RatingService ratingService, SummaryService summaryService, EmailService emailService, ReportService reportService) {
+    public MainServiceImpl(MovieService movieService, TsvLoaderService tsvLoaderService, RatingService ratingService, SummaryService summaryService, EmailService emailService, ReportService reportService) {
         this.movieService = movieService;
-        this.tsvReaderService = tsvReaderService;
+        this.tsvLoaderService = tsvLoaderService;
         this.ratingService = ratingService;
         this.summaryService = summaryService;
         this.emailService = emailService;
@@ -46,7 +46,7 @@ public class MainServiceImpl implements MainService {
 
 
 
-        logger.info("loadDaily start");
+        logger.info("MainService start");
 
         try {
             logger.info("deleting today records");
@@ -61,11 +61,9 @@ public class MainServiceImpl implements MainService {
 
             logger.info("loading new movies and ratings");
 
-            tsvReaderService.readTitlesTsv();
+            tsvLoaderService.loadTitles();
 
-            tsvReaderService.readRatingsTsv();
-
-            logger.info("loadDaily completed successfully");
+            tsvLoaderService.loadRatings();
 
             logger.info("searching top 100 trending movies");
 
@@ -75,19 +73,28 @@ public class MainServiceImpl implements MainService {
 
             String trendingReport = reportService.generateTrendingMoviesReport(trendingMoviesList);
 
-            logger.info("trending movies report generated");
+            logger.info("saving trending movies");
 
             summaryService.saveDailyTrendingMovies(trendingMoviesList);
+
+            logger.info("calculating daily summary");
 
             DailySummaryDto summaryDto = summaryService.calculateDailySummary();
 
             List<DailySummaryGenreDto> summaryGenreDtoList = summaryService.calculateDailySummaryByGenre();
 
+            logger.info("generating summary report");
+
             String summaryReport = reportService.generateDailySummaryReport(summaryDto, summaryGenreDtoList);
+
+            logger.info("saving daily summary");
             summaryService.saveDailySummary(summaryDto, summaryGenreDtoList);
+
+            logger.info("sending reports mail");
 
             emailService.sendSummaryMail(trendingReport, summaryReport);
 
+            logger.info("MainService completed successfully");
 
         } catch (ApplicationException e) {
             logger.error("Error during loadDaily", e);

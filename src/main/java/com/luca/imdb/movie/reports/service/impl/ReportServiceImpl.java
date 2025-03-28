@@ -4,9 +4,6 @@ import com.luca.imdb.movie.reports.config.ExecutionProperties;
 import com.luca.imdb.movie.reports.dto.DailySummaryDto;
 import com.luca.imdb.movie.reports.dto.DailySummaryGenreDto;
 import com.luca.imdb.movie.reports.dto.TrendingMovieDto;
-
-
-import com.luca.imdb.movie.reports.service.RatingService;
 import com.luca.imdb.movie.reports.util.FormatUtils;
 import com.luca.imdb.movie.reports.util.ReportUtils;
 import org.springframework.stereotype.Service;
@@ -21,13 +18,9 @@ import static com.luca.imdb.movie.reports.util.ReportUtils.*;
 @Service
 public class ReportServiceImpl implements ReportService {
 
-
-    private final RatingService ratingService;
-
     private final ExecutionProperties executionProperties;
 
-    public ReportServiceImpl(RatingService ratingService,ExecutionProperties executionProperties) {
-        this.ratingService = ratingService;
+    public ReportServiceImpl(ExecutionProperties executionProperties) {
         this.executionProperties=executionProperties;
     }
 
@@ -36,8 +29,6 @@ public class ReportServiceImpl implements ReportService {
     public String generateTrendingMoviesReport(List<TrendingMovieDto> trendingMovieDtoList) {
 
         StringBuilder sb = new StringBuilder();
-
-
         sb.append(ReportUtils.createTrendingMoviesHeader());
 
         trendingMovieDtoList.forEach(movie -> {
@@ -45,8 +36,6 @@ public class ReportServiceImpl implements ReportService {
                     , escapeString(movie.getOrigTitle()), movie.getNumVotesDiff().toString(), movie.getCurrentNumVotes().toString(), formatDouble(movie.getAvgRatingDiff()),
                     formatDouble(movie.getCurrentAvgRating()), movie.getYear().toString(), formatDuration(movie.getRuntimeMinutes()), parseBoolean(movie.getAdult())
                     , formatGenreList(movie.getGenreList()),FormatUtils.formatDate(executionProperties.getStartDate()),FormatUtils.formatDate(executionProperties.getCurrentDate())) + "\n";
-
-
             sb.append(line);
         });
 
@@ -58,24 +47,13 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public String generateDailySummaryReport(DailySummaryDto dailySummary, List<DailySummaryGenreDto> dailyGenreSummaryList) {
 
-
         StringBuilder sb = new StringBuilder();
-
         sb.append(createDailySummaryHeader());
-
         String startDate = FormatUtils.formatDate(executionProperties.getStartDate());
         String endDate = FormatUtils.formatDate(executionProperties.getCurrentDate());
-
-
         sb.append(getSummaryLine(dailySummary, "ALL", startDate, endDate));
-
-
         dailyGenreSummaryList.forEach(s -> sb.append(getSummaryLine(s, s.getGenre().name(), startDate, endDate)));
-
-
         return sb.toString();
-
-
     }
 
     private String getSummaryLine(DailySummaryDto dto, String genre, String startDate, String endDate) {
