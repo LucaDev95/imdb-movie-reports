@@ -14,6 +14,7 @@ public class GenreEntity {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
+    @Column(unique = true,nullable = false)
     private Genre genreName;
 
 

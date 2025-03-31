@@ -10,6 +10,11 @@ import java.time.LocalDate;
 
 public interface TrendingMoviesSummaryRepository extends JpaRepository<TrendingMoviesSummary,Long>, TrendingMoviesSummaryRepositoryExtension {
 
+
+    @Modifying
+    @Query(value = "delete from trending_movies_summary ts using movie mov where ts.movie_id=mov.id and mov.insert_date<:limitDate and mov.year<:limitYear",nativeQuery = true)
+    public int deleteOldTrendingMovies(@Param("limitDate") LocalDate limitDate, @Param("limitYear") Integer limitYear);
+
     @Modifying
     @Query("delete from TrendingMoviesSummary d where d.endRating.insertDate=:date")
     public void deleteByEndRatingDate(@Param("date") LocalDate date);
@@ -18,5 +23,7 @@ public interface TrendingMoviesSummaryRepository extends JpaRepository<TrendingM
     @Modifying
     @Query(value = "truncate trending_movies_summary",nativeQuery = true)
     public void truncate();
+
+
 
 }

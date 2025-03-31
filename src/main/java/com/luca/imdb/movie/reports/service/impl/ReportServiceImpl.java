@@ -35,7 +35,7 @@ public class ReportServiceImpl implements ReportService {
             String line = String.join(",", movie.getPosition().toString(), movie.gettConst(), escapeString(movie.getPrimaryTitle())
                     , escapeString(movie.getOrigTitle()), movie.getNumVotesDiff().toString(), movie.getCurrentNumVotes().toString(), formatDouble(movie.getAvgRatingDiff()),
                     formatDouble(movie.getCurrentAvgRating()), movie.getYear().toString(), formatDuration(movie.getRuntimeMinutes()), parseBoolean(movie.getAdult())
-                    , formatGenreList(movie.getGenreList()),FormatUtils.formatDate(executionProperties.getStartDate()),FormatUtils.formatDate(executionProperties.getCurrentDate())) + "\n";
+                    , escapeString(formatGenreList(movie.getGenreList())),FormatUtils.formatDate(executionProperties.getStartDate()),FormatUtils.formatDate(executionProperties.getCurrentDate())) + "\n";
             sb.append(line);
         });
 

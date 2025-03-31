@@ -4,8 +4,6 @@ import com.luca.imdb.movie.reports.dto.DailySummaryDto;
 import com.luca.imdb.movie.reports.dto.DailySummaryGenreDto;
 import com.luca.imdb.movie.reports.dto.TrendingMovieDto;
 
-
-import java.io.IOException;
 import java.util.List;
 
 public interface SummaryService {
@@ -15,7 +13,7 @@ public interface SummaryService {
 
     public List<DailySummaryGenreDto> calculateDailySummaryByGenre();
 
-    public List<TrendingMovieDto> getDailyTrendingMoviesSummary() throws IOException;
+    public List<TrendingMovieDto> getDailyTrendingMoviesSummary();
 
     public void saveDailyTrendingMovies(List<TrendingMovieDto> trendingMoviesList);
 

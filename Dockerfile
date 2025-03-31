@@ -1,11 +1,30 @@
-FROM openjdk:21-jdk-slim
+# Stage 1: Build con Maven
+# Stage 1: Builder con Java 21 e Maven
+FROM openjdk:21-jdk-slim AS builder
 
-# Impostare la directory di lavoro nell'immagine di runtime
+# Installa Maven
+RUN apt-get update && apt-get install -y maven
+
 WORKDIR /app
 
-COPY target/*.jar app.jar
+# Copia pom.xml e la cartella src per sfruttare la cache
+COPY pom.xml .
+COPY src ./src
 
-# Comando per eseguire l'applicazione Spring Boot
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]
+# Esegui la build del progetto (saltando i test se desiderato)
+RUN mvn clean package -DskipTests
 
-EXPOSE 8080
+# Stage 2: Immagine finale con OpenJDK 21
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+# Copia il JAR generato dallo stage builder
+COPY --from=builder /app/target/*.jar imdb-movie-reports.jar
+
+# Imposta la variabile d'ambiente per il profilo Spring
+ENV SPRING_PROFILES_ACTIVE=docker
+
+# Comando di avvio
+ENTRYPOINT ["java", "-jar", "imdb-movie-reports.jar"]
+

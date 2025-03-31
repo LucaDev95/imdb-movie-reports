@@ -15,11 +15,11 @@ public class TrendingMoviesSummary {
     private Movie movie;
 
     @OneToOne
-    @JoinColumn(name = "rating_start_id")
+    @JoinColumn(name = "rating_start_id",nullable = false)
     private Rating startRating;
 
     @OneToOne
-    @JoinColumn(name = "rating_end_id")
+    @JoinColumn(name = "rating_end_id",nullable = false)
     private Rating endRating;
 
     private Integer position;

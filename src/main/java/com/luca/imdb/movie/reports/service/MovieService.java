@@ -8,6 +8,8 @@ import java.util.Map;
 
 public interface MovieService {
 
+    public long countMovies();
+
     public void saveNewMovies(List<MovieRow> movieRowList, Map<Genre,Integer> genreMap);
 
     public void deleteCurrentDate();

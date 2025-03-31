@@ -24,21 +24,18 @@ public interface SummaryRepository extends JpaRepository<Summary,Long> {
     @Query("select count(mov.id) from Movie mov")
     public Long getAnalyzedMovies();
 
-    @Query("select count(mov.id) from Movie mov where mov.insertDate>=:startDate")
+    @Query("select count(mov.id) from Movie mov where mov.insertDate>:startDate")
     public Long getNewMovies(@Param("startDate") LocalDate startDate);
 
     @Query("select count(mov.id) from Movie mov where mov.isAdult=true")
     public Long getTotalNumAdultMovies();
 
-    @Query("select avg(mov.runtimeMinutes) from Movie mov where mov.insertDate>=:startDate and mov.runtimeMinutes is not null")
+    @Query("select avg(mov.runtimeMinutes) from Movie mov where mov.insertDate>:startDate and mov.runtimeMinutes is not null")
     public Double getAvgRuntimeMinutesByDate(@Param("startDate") LocalDate startDate);
 
     @Query("select avg(mov.runtimeMinutes) from Movie mov where mov.runtimeMinutes is not null")
     public Double getAvgTotalRuntimeMinutes();
 
-    @Modifying
-    @Query("delete from Summary d where d.endDate=:date")
-    public void deleteByEndRatingDate(@Param("date") LocalDate date);
 
     @Modifying
     @Query(value = "truncate summary CASCADE",nativeQuery = true)

@@ -1,7 +1,10 @@
 package com.luca.imdb.movie.reports.service;
 
-public interface ResetTablesService {
+
+public interface ClearUpTablesService {
 
 
     public void resetTables();
+
+    public void deleteOldMoviesData();
 }

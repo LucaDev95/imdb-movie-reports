@@ -13,11 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class MainServiceImpl implements MainService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResetDataServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(MainServiceImpl.class);
 
     private final MovieService movieService;
 
@@ -31,20 +32,21 @@ public class MainServiceImpl implements MainService {
 
     private final ReportService reportService;
 
-    public MainServiceImpl(MovieService movieService, TsvLoaderService tsvLoaderService, RatingService ratingService, SummaryService summaryService, EmailService emailService, ReportService reportService) {
+    private final ClearUpTablesService clearUpTablesService;
+
+    public MainServiceImpl(MovieService movieService, TsvLoaderService tsvLoaderService, RatingService ratingService, SummaryService summaryService, EmailService emailService, ReportService reportService,ClearUpTablesService clearUpTablesService) {
         this.movieService = movieService;
         this.tsvLoaderService = tsvLoaderService;
         this.ratingService = ratingService;
         this.summaryService = summaryService;
         this.emailService = emailService;
         this.reportService = reportService;
+        this.clearUpTablesService=clearUpTablesService;
 
     }
 
     @Override
     public void loadDaily() {
-
-
 
         logger.info("MainService start");
 
@@ -53,11 +55,9 @@ public class MainServiceImpl implements MainService {
 
             summaryService.deleteTodaySummary();
 
-            movieService.deleteCurrentDate();
-
             ratingService.deleteCurrentRatings();
 
-            summaryService.deleteTodaySummary();
+            movieService.deleteCurrentDate();
 
             logger.info("loading new movies and ratings");
 
@@ -65,34 +65,27 @@ public class MainServiceImpl implements MainService {
 
             tsvLoaderService.loadRatings();
 
-            logger.info("searching top 100 trending movies");
+            if(ratingService.checkReportGeneration()) {
 
-            List<TrendingMovieDto> trendingMoviesList = summaryService.getDailyTrendingMoviesSummary();
+                logger.info("Ratings are in summary range. Start generating reports");
 
-            logger.info("generating trending movies report");
+                CompletableFuture<String> trendingMoviesFuture = CompletableFuture.supplyAsync(() -> processTrendingMovies());
 
-            String trendingReport = reportService.generateTrendingMoviesReport(trendingMoviesList);
+                CompletableFuture<String> dailySummaryFuture = CompletableFuture.supplyAsync(() -> processDailySummary());
 
-            logger.info("saving trending movies");
+                CompletableFuture.allOf(trendingMoviesFuture, dailySummaryFuture).get();
 
-            summaryService.saveDailyTrendingMovies(trendingMoviesList);
+                String trendingMoviesReport = trendingMoviesFuture.get();
 
-            logger.info("calculating daily summary");
+                String dailySummaryReport = dailySummaryFuture.get();
 
-            DailySummaryDto summaryDto = summaryService.calculateDailySummary();
+                logger.info("sending reports mail");
 
-            List<DailySummaryGenreDto> summaryGenreDtoList = summaryService.calculateDailySummaryByGenre();
+                emailService.sendSummaryMail(trendingMoviesReport, dailySummaryReport);
 
-            logger.info("generating summary report");
+            }
 
-            String summaryReport = reportService.generateDailySummaryReport(summaryDto, summaryGenreDtoList);
-
-            logger.info("saving daily summary");
-            summaryService.saveDailySummary(summaryDto, summaryGenreDtoList);
-
-            logger.info("sending reports mail");
-
-            emailService.sendSummaryMail(trendingReport, summaryReport);
+            clearUpTablesService.deleteOldMoviesData();
 
             logger.info("MainService completed successfully");
 
@@ -106,6 +99,33 @@ public class MainServiceImpl implements MainService {
         }
 
 
+    }
+
+    private String processTrendingMovies() {
+        logger.info("searching top 100 trending movies");
+
+        List<TrendingMovieDto> trendingMoviesList = summaryService.getDailyTrendingMoviesSummary();
+
+        logger.info("generating trending movies report");
+
+        String trendingReport = reportService.generateTrendingMoviesReport(trendingMoviesList);
+
+        logger.info("saving trending movies");
+
+        summaryService.saveDailyTrendingMovies(trendingMoviesList);
+        return trendingReport;
+    }
+
+    private String processDailySummary(){
+        logger.info("calculating daily summary");
+
+        DailySummaryDto summaryDto = summaryService.calculateDailySummary();
+
+        List<DailySummaryGenreDto> summaryGenreDtoList = summaryService.calculateDailySummaryByGenre();
+
+        logger.info("generating summary report");
+
+        return reportService.generateDailySummaryReport(summaryDto, summaryGenreDtoList);
     }
 
 }

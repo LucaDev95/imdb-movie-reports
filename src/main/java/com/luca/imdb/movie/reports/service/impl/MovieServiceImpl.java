@@ -35,6 +35,12 @@ public class MovieServiceImpl implements MovieService{
 
 
     @Override
+    @Transactional(readOnly = true)
+    public long countMovies() {
+       return this.movieRepository.count();
+    }
+
+    @Override
     @Transactional
     public void saveNewMovies(List<MovieRow> movieRowList,Map<Genre,Integer> genreMap) {
 

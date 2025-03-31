@@ -27,7 +27,6 @@ replay_pid*
 .idea/
 .mvn/
 HELP.md
-docker-compose.yml
 mvnw
 mvnw.cmd
 target/

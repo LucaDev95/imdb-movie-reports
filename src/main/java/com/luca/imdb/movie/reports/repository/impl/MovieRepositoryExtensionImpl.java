@@ -3,7 +3,6 @@ package com.luca.imdb.movie.reports.repository.impl;
 import com.luca.imdb.movie.reports.config.ExecutionProperties;
 import com.luca.imdb.movie.reports.dto.MovieIdAndTConst;
 import com.luca.imdb.movie.reports.repository.MovieRepositoryExtension;
-import jakarta.persistence.EntityManager;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -15,9 +14,9 @@ public class MovieRepositoryExtensionImpl implements MovieRepositoryExtension {
 
     private final ExecutionProperties executionProperties;
 
-    private final String ID_AND_T_CONST="select id,t_const from movie mov order by mov.t_const rows fetch next :groupNum rows only";
+    private final String ID_AND_T_CONST="select mov.id,mov.t_const from movie mov order by mov.t_const fetch next :groupNum rows only";
 
-    private final String NEXT_ID_AND_T_CONST="select id,t_const from movie mov where mov.t_const>:tConst order by mov.t_const rows fetch next :groupNum rows only";
+    private final String NEXT_ID_AND_T_CONST="select mov.id,mov.t_const from movie mov where mov.t_const>:tConst order by mov.t_const fetch next :groupNum rows only";
 
     public MovieRepositoryExtensionImpl( NamedParameterJdbcTemplate jdbcTemplate,ExecutionProperties executionProperties){
         this.jdbcTemplate=jdbcTemplate;

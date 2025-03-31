@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableJpaRepositories
 @EnableTransactionManagement
-public class ImdbMovieRatingApplication {
+public class ImdbMovieReportsApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ImdbMovieRatingApplication.class, args);
+		SpringApplication.run(ImdbMovieReportsApplication.class, args);
 	}
 
 

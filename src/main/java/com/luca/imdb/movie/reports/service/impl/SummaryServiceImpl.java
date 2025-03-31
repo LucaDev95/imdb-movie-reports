@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -85,11 +84,11 @@ public class SummaryServiceImpl implements SummaryService {
 
         dto.setAvgRatingVariation(todayAvgRating-yesterdayAvgRating);
 
-        dto.setNumTotalAdultMovies(totalNumAdultMovies);
+        dto.setNumTotalAdultMovies(totalNumAdultMovies!=null?totalNumAdultMovies:0);
 
         dto.setTotalAvgDuration(avgOverallRuntimeMinutes);
 
-        dto.setCurrentVoteDensity((double)todayNumVotes/numValuationMovies);
+        dto.setCurrentVoteDensity(todayNumVotes!=null?(double)todayNumVotes/numValuationMovies:0);
 
         dto.setNewMoviesAvgDuration(avgDailyRuntimeMinutes);
 
@@ -98,9 +97,9 @@ public class SummaryServiceImpl implements SummaryService {
         dto.setNumNewVotes(todayNumVotes);
 
         dto.setTotalAvgNumVotes((double)sumVotesUntilToday/numValuationMovies);
-        dto.setTotalAdultMoviesPerc(((double)totalNumAdultMovies/numValuationMovies) *100);
 
 
+        dto.setTotalAdultMoviesPerc(totalNumAdultMovies!=null?((double)totalNumAdultMovies/numValuationMovies) *100:0);
         logger.info("Summary is: {}",dto);
 
         return dto;
@@ -141,9 +140,9 @@ public class SummaryServiceImpl implements SummaryService {
 
            dto.setNewMoviesAvgDuration(newMoviesAvgDuration.get(genre));
 
-           dto.setNumTotalAdultMovies(totalNumAdultMovies.get(genre));
+           dto.setNumTotalAdultMovies(totalNumAdultMovies.get(genre)!=null?totalNumAdultMovies.get(genre):0);
 
-            dto.setNumNewMovies(newMovies.get(genre));
+            dto.setNumNewMovies(newMovies.get(genre)!=null?newMovies.get(genre):0);
 
             dto.setNumMoviesAnalyzed(numValuationMovies.get(genre));
 
@@ -151,15 +150,15 @@ public class SummaryServiceImpl implements SummaryService {
 
             dto.setAvgRating(overallAvgRating.get(genre));
 
-
             dto.setNumNewVotes(sumVotesUntilToday.get(genre)-sumVotesUntilYesterday.get(genre));
 
-
-            dto.setCurrentVoteDensity((double)dto.getNumNewVotes()/dto.getNumMoviesAnalyzed());
+            dto.setCurrentVoteDensity(dto.getNumNewVotes()!=null?(double)dto.getNumNewVotes()/dto.getNumMoviesAnalyzed():0);
 
             dto.setTotalAvgNumVotes((double)sumVotesUntilToday.get(genre)/dto.getNumMoviesAnalyzed());
 
-            dto.setTotalAdultMoviesPerc(((double)dto.getNumTotalAdultMovies()/dto.getNumMoviesAnalyzed())*100);
+            dto.setTotalNumVotes(sumVotesUntilToday.get(genre));
+
+            dto.setTotalAdultMoviesPerc(dto.getNumTotalAdultMovies()!=null?((double)dto.getNumTotalAdultMovies()/dto.getNumMoviesAnalyzed())*100:0);
 
             logger.info("Genre Summary is: {}",dto);
 
@@ -174,9 +173,18 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrendingMovieDto> getDailyTrendingMoviesSummary() throws IOException {
-        List<TrendingMovieDto> trendingMovieDtoList= dailyTrendingMoviesRepository.findTrendingMoviesSummary(executionProperties.getStartDate(),executionProperties.getCurrentDate());
-        trendingMovieDtoList.forEach(t->logger.info("Trending movie : {}",t));
+    public List<TrendingMovieDto> getDailyTrendingMoviesSummary() {
+        List<TrendingMovieDto> trendingMovieDtoList;
+
+        try {
+
+            trendingMovieDtoList = dailyTrendingMoviesRepository.findTrendingMoviesSummary(executionProperties.getStartDate(), executionProperties.getCurrentDate());
+            trendingMovieDtoList.forEach(t -> logger.info("Trending movie : {}", t));
+
+        }catch(IOException e){
+            logger.error("unable to read TrendingMoviesSummary query resource",e);
+            throw new ReportException("unable to read TrendingMoviesSummary query resource",e);
+        }
         return trendingMovieDtoList;
     }
 

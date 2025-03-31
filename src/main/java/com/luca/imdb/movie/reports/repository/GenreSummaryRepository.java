@@ -25,13 +25,13 @@ public interface GenreSummaryRepository extends JpaRepository<GenreSummary,Long>
     @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryLongResult(count(m.id),g.genreName) from Movie m join m.genreList g group by g.genreName")
     public List<GenreSummaryLongResult> getMoviesAnalyzed();
 
-    @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryLongResult(count(m.id),g.genreName) from Movie m join m.genreList g where m.insertDate>=:startDate group by g.genreName")
+    @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryLongResult(count(m.id),g.genreName) from Movie m join m.genreList g where m.insertDate>:startDate group by g.genreName")
     public List<GenreSummaryLongResult> getNewMovies(@Param("startDate") LocalDate startDate);
 
     @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryLongResult(count(m.id),g.genreName) from Movie m join m.genreList g where m.isAdult=true group by g.genreName")
     public List<GenreSummaryLongResult> getTotalNumAdultMovies();
 
-    @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryDoubleResult(avg(m.runtimeMinutes),g.genreName) from Movie m join m.genreList g where m.insertDate>=:startDate and m.runtimeMinutes is not null group by g.genreName")
+    @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryDoubleResult(avg(m.runtimeMinutes),g.genreName) from Movie m join m.genreList g where m.insertDate>:startDate and m.runtimeMinutes is not null group by g.genreName")
     public  List<GenreSummaryDoubleResult> getAvgRuntimeMinutesByDate(@Param("startDate") LocalDate startDate);
 
     @Query("select new com.luca.imdb.movie.reports.dto.GenreSummaryDoubleResult(avg(m.runtimeMinutes),g.genreName) from Movie m join m.genreList g where m.runtimeMinutes is not null group by g.genreName")

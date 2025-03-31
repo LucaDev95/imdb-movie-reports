@@ -1,36 +1,47 @@
 package com.luca.imdb.movie.reports.entitiy;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
 public abstract class AbstractSummary {
 
+    @Column(nullable = false)
     private Long numNewVotes;
 
+    @Column(nullable = false)
     private Long numTotalVotes;
 
+    @Column(nullable = false)
     private Double avgRating;
 
+    @Column(nullable = false)
     private Double avgRatingVariation;
 
+    @Column(nullable = false)
     private Long numMoviesAnalyzed;
 
+    @Column(nullable = false)
     private Double currentVoteDensity;
 
+    @Column(nullable = false)
     private Double totalAvgNumVotes;
 
+    @Column(nullable = false)
     private Long numNewMovies;
 
+    @Column(nullable = false)
     private Long numTotalAdultMovies;
 
+    @Column(nullable = false)
     private Double totalAdultMoviesPerc;
 
+    @Column(nullable = false)
     private Double newMoviesAvgDuration;
 
+    @Column(nullable = false)
     private Double totalAvgDuration;
-
-
 
     public Long getNumNewVotes() {
         return numNewVotes;

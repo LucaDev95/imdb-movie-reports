@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table
 public class Summary extends AbstractSummary {
 
     @Id
@@ -17,8 +18,10 @@ public class Summary extends AbstractSummary {
     @OneToMany(mappedBy="summary", cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     private List<GenreSummary> genreSummaryList;
 
+    @Column(nullable = false, unique = true)
     private LocalDate endDate;
 
+    @Column(nullable = false, unique = true)
     private LocalDate startDate;
 
     public Long getId() {

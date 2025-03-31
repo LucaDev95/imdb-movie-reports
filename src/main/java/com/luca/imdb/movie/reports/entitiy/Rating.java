@@ -7,6 +7,10 @@ import java.time.LocalDate;
 
 
 @Entity
+@Table(indexes = {
+        @Index(name="movie_insertDate_index", columnList = "movie_id, insertDate",unique = true)
+
+})
 public class Rating {
 
     @Id
@@ -19,10 +23,11 @@ public class Rating {
     private Integer numVotes;
 
     @ManyToOne
-    @JoinColumn(name="movie_id")
+    @JoinColumn(name="movie_id",nullable = false)
     private Movie movie;
 
     @CreationTimestamp
+    @Column(nullable = false)
     private LocalDate insertDate;
 
     public Long getId() {

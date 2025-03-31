@@ -3,6 +3,9 @@ package com.luca.imdb.movie.reports.entitiy;
 import jakarta.persistence.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name="summary_id_genre_id_index", columnList = "summary_id, genre_id",unique = true)
+})
 public class GenreSummary extends AbstractSummary {
 
     @Id

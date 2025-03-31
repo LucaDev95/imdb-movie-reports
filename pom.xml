@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.luca</groupId>
-	<artifactId>imdb-movie-rating</artifactId>
+	<artifactId>imdb-movie-reports</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>imdb-movie-rating</name>
+	<name>imdb-movie-reports</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>

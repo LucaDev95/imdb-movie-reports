@@ -10,5 +10,7 @@ public interface RatingService {
 
     public void deleteCurrentRatings();
 
+    public boolean checkReportGeneration();
+
 
 }

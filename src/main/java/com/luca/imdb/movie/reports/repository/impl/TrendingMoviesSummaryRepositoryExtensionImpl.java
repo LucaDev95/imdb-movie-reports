@@ -50,7 +50,7 @@ public class TrendingMoviesSummaryRepositoryExtensionImpl implements TrendingMov
         jdbcTemplate.query(trendingMoviesQuery,params,(rs, rowNum)->{
 
             Long movieId=rs.getLong("movie_id");
-            String genreStr=rs.getString("genre");
+            String genreStr=rs.getString("genre_name");
             Genre genre=Genre.valueOf(genreStr);
 
             TrendingMovieDto trendingMovieDto = trendingMoviesMap.computeIfAbsent(movieId, id -> {

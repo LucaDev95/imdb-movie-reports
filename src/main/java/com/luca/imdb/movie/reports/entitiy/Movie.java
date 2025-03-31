@@ -7,6 +7,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table(indexes = {
+        @Index(name="tConst_insertDate_index", columnList = "tConst, insertDate",unique = true)
+
+})
 public class Movie {
 
     @Id
@@ -14,7 +18,7 @@ public class Movie {
     @SequenceGenerator(name = "MOVIE_SEQ", sequenceName = "MOVIE_SEQ", allocationSize = 10)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true,nullable = false)
     private String tConst;
 
     private String primaryTitle;
@@ -23,6 +27,7 @@ public class Movie {
 
     private Boolean isAdult;
 
+    @Column(nullable = false)
     private Integer year;
 
     private Integer runtimeMinutes;
@@ -40,6 +45,7 @@ public class Movie {
 
 
     @CreationTimestamp
+    @Column(nullable = false)
     private LocalDate insertDate;
 
     public Long getId() {
