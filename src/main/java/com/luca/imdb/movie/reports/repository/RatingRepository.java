@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public interface RatingRepository extends JpaRepository<Rating,Long>{
 
 
-    @Query("select count(r) from Rating r where r.insertDate<:reportIntervalDate")
+    @Query("select count(r) from Rating r where r.insertDate<=:reportIntervalDate")
     public Long countRatingsInReportInterval(@Param("reportIntervalDate") LocalDate reportIntervalDate);
 
     @Modifying

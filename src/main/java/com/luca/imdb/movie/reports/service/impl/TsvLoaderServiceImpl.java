@@ -1,6 +1,10 @@
 package com.luca.imdb.movie.reports.service.impl;
 
+import com.luca.imdb.movie.reports.consumer.MovieConsumer;
 import com.luca.imdb.movie.reports.exception.LoadingException;
+import com.luca.imdb.movie.reports.producer.MovieProducer;
+import com.luca.imdb.movie.reports.consumer.RatingConsumer;
+import com.luca.imdb.movie.reports.producer.RatingProducer;
 import com.luca.imdb.movie.reports.service.TsvLoaderService;
 import com.luca.imdb.movie.reports.util.ParsingUtils;
 import com.luca.imdb.movie.reports.config.ImdbProperties;
@@ -12,6 +16,7 @@ import com.luca.imdb.movie.reports.service.GenreService;
 import com.luca.imdb.movie.reports.service.MovieService;
 import com.luca.imdb.movie.reports.service.RatingService;
 import com.luca.imdb.movie.reports.util.ImdbConstants;
+import com.luca.imdb.movie.reports.util.RunnableFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,7 @@ import java.io.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.zip.GZIPInputStream;
 
 @Service
@@ -37,13 +43,16 @@ public class TsvLoaderServiceImpl implements TsvLoaderService {
 
     private final ExecutionProperties loadingProperties;
 
+    private final RunnableFactory runnableFactory;
 
-    public TsvLoaderServiceImpl(MovieService movieService, RatingService ratingService, ImdbProperties imdbProperties, GenreService genreService, ExecutionProperties loadingProperties) {
+
+    public TsvLoaderServiceImpl(MovieService movieService, RatingService ratingService, ImdbProperties imdbProperties, GenreService genreService, ExecutionProperties loadingProperties,RunnableFactory runnableFactory) {
         this.movieService = movieService;
         this.ratingService = ratingService;
         this.imdbProperties = imdbProperties;
         this.genreService = genreService;
         this.loadingProperties = loadingProperties;
+        this.runnableFactory=runnableFactory;
 
     }
 
@@ -109,7 +118,7 @@ public class TsvLoaderServiceImpl implements TsvLoaderService {
                     }
 
                 } catch (Exception e) {
-                   logger.info("Skipped movie with code: {}",movieRow.gettConst());
+                   logger.debug("Skipped movie with code: {}",movieRow.gettConst());
 
                     continue;
                 }
@@ -136,154 +145,49 @@ public class TsvLoaderServiceImpl implements TsvLoaderService {
 
     @Override
     public void loadTitles() {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
 
-        List<MovieRow> movieRowList = new ArrayList<>();
+        MovieConsumer consumer=runnableFactory.createMovieConsumer();
+        MovieProducer producer=runnableFactory.createMovieProducer();
 
-        int currentYear = LocalDate.now().getYear();
+        BlockingQueue<List<MovieRow>> queue=new LinkedBlockingQueue<>();
+        producer.setMovieQueue(queue);
+        consumer.setMovieQueue(queue);
 
-        Map<String, Long> tConstMap = movieService.getMovieNextTConstMap(null);
+        executor.submit(producer);
+        executor.submit(consumer);
 
-        String maxString = "";
-
-        if (!tConstMap.isEmpty()) {
-            maxString = Collections.max(tConstMap.keySet(), Comparator.naturalOrder());
+        executor.shutdown();
+        try {
+            executor.awaitTermination(loadingProperties.getTimeoutSeconds(), TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.error("Lettura di titles tsv interrotta",e);
+            throw new LoadingException("Lettura di titles tsv interrotta",e);
         }
-
-        Map<Genre, Integer> genreMap = genreService.getGenreMap();
-
-        try (BufferedReader basicsBufferedReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(URI.create(imdbProperties.getBasicsGz()).toURL().openStream())))) {
-
-            basicsBufferedReader.readLine();
-
-            while (basicsBufferedReader.ready()) {
-
-                String[] arr = basicsBufferedReader.readLine().split("\t");
-
-                MovieRow movieRow = new MovieRow();
-
-                try {
-
-                    if (ParsingUtils.parseTitleType(arr).equals(ImdbConstants.MOVIE)) {
-
-
-                        movieRow.settConst(ParsingUtils.parseTConst(arr));
-
-                        movieRow.setYear(ParsingUtils.parseYear(arr));
-
-                        if (movieRow.getYear() != null && movieRow.getYear() >= currentYear) {
-                            while (maxString.compareTo(movieRow.gettConst()) < 0 && !tConstMap.isEmpty()) {
-
-                                tConstMap = movieService.getMovieNextTConstMap(maxString);
-                                if (!tConstMap.isEmpty()) {
-                                    maxString = Collections.max(tConstMap.keySet(), Comparator.naturalOrder());
-                                }
-
-                            }
-
-                            if (!tConstMap.containsKey(movieRow.gettConst())) {
-                                ParsingUtils.parseMovieFields(arr, movieRow);
-
-
-                                movieRowList.add(movieRow);
-                                logger.info("Read movie row : {}",movieRow);
-                            }
-                        }
-
-                    }
-
-
-                } catch (Exception e) {
-                    logger.info("Skipped movie row with code: {}",movieRow.gettConst());
-                    continue;
-                }
-
-                if (movieRowList.size() >= loadingProperties.getMovieInsertSize()) {
-                    saveAndClearList(movieRowList, genreMap);
-                }
-            }
-
-            if (!movieRowList.isEmpty()) {
-                saveAndClearList(movieRowList, genreMap);
-            }
-
-
-        } catch (IOException e) {
-            logger.error("Error while reading titles tsv file from imdb",e);
-            throw new LoadingException("Error while reading titles tsv file from imdb",e);
-        }
-
     }
 
     @Override
     public void loadRatings() {
 
-        List<RatingRow> ratingRowList = new ArrayList<>();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        RatingConsumer consumer=runnableFactory.createRatingConsumer();
+        RatingProducer producer=runnableFactory.createRatingProducer();
 
-        Map<String, Long> tConstMap = movieService.getMovieNextTConstMap(null);
+        BlockingQueue<List<RatingRow>> queue=new LinkedBlockingQueue<>();
 
-        logger.info("tConstMap size : {}", tConstMap.size());
+        producer.setRatingQueue(queue);
+        consumer.setRatingQueue(queue);
 
-        String maxString = "";
+        executor.submit(producer);
+        executor.submit(consumer);
 
-        if (!tConstMap.isEmpty()) {
-            maxString = Collections.max(tConstMap.keySet(), Comparator.naturalOrder());
+        executor.shutdown();
+        try {
+            executor.awaitTermination(loadingProperties.getTimeoutSeconds(), TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.error("Lettura di ratings tsv interrotta",e);
+            throw new LoadingException("Lettura di ratings tsv interrotta",e);
         }
-
-        try (BufferedReader ratingsBufferedReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(URI.create(imdbProperties.getRatingsGz()).toURL().openStream())))) {
-
-            // skip headers
-            ratingsBufferedReader.readLine();
-
-            String tConst=null;
-            while (ratingsBufferedReader.ready()) {
-
-                try {
-
-                    String[] arr = ratingsBufferedReader.readLine().split("\t");
-                    tConst = ParsingUtils.parseTConst(arr);
-
-                    while (maxString.compareTo(tConst) < 0 && !tConstMap.isEmpty()) {
-                        tConstMap = movieService.getMovieNextTConstMap(maxString);
-                        if (!tConstMap.isEmpty()) {
-                            maxString = Collections.max(tConstMap.keySet(), Comparator.naturalOrder());
-                        }
-                    }
-
-                    Long movieId = tConstMap.get(tConst);
-
-
-                    if (movieId != null) {
-
-                        logger.info("found movie for tConst {}", tConst);
-
-                        RatingRow rating = new RatingRow(movieId, ParsingUtils.parseAvgrating(arr), ParsingUtils.parseNumVotes(arr));
-
-
-                        ratingRowList.add(rating);
-                        logger.info("Read rating row : {}",rating);
-                    }
-
-                } catch (Exception e) {
-                    logger.info("Skipped rating row with code: {}",tConst);
-                    continue;
-
-                }
-
-                if (ratingRowList.size() >= loadingProperties.getRatingInsertSize()) {
-                    saveAndClearList(ratingRowList);
-                }
-
-            }
-
-            if (!ratingRowList.isEmpty()) {
-                saveAndClearList(ratingRowList);
-            }
-
-        } catch (IOException e) {
-            logger.error("Error while reading ratings tsv file from imdb",e);
-            throw new LoadingException("Error while reading ratings tsv file from imdb",e);
-        }
-
 
     }
 
@@ -298,19 +202,6 @@ public class TsvLoaderServiceImpl implements TsvLoaderService {
             logger.error("Error while saving movies ",e);
             throw new LoadingException("Error while saving movies ",e);
 
-        }
-    }
-
-    private void saveAndClearList(List<RatingRow> ratingRowList) {
-        try {
-
-
-            ratingService.saveRatingRows(ratingRowList);
-            ratingRowList.clear();
-
-        } catch (RuntimeException e) {
-            logger.error("Error while saving ratings ",e);
-            throw new LoadingException("Error while saving ratings ",e);
         }
     }
 

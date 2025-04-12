@@ -69,11 +69,9 @@ public class MainServiceImpl implements MainService {
 
                 logger.info("Ratings are in summary range. Start generating reports");
 
-                CompletableFuture<String> trendingMoviesFuture = CompletableFuture.supplyAsync(() -> processTrendingMovies());
+                CompletableFuture<String> trendingMoviesFuture = CompletableFuture.supplyAsync(this::processTrendingMovies);
 
-                CompletableFuture<String> dailySummaryFuture = CompletableFuture.supplyAsync(() -> processDailySummary());
-
-                CompletableFuture.allOf(trendingMoviesFuture, dailySummaryFuture).get();
+                CompletableFuture<String> dailySummaryFuture = CompletableFuture.supplyAsync(this::processDailySummary);
 
                 String trendingMoviesReport = trendingMoviesFuture.get();
 

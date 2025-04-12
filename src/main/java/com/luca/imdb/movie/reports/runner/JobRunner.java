@@ -6,6 +6,7 @@ import com.luca.imdb.movie.reports.service.ResetDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,7 +21,7 @@ public class JobRunner  implements CommandLineRunner {
 
     private final MovieService movieService;
 
-    public JobRunner(ResetDataService resetDataService, MainService loadDailyService, MovieService movieService){
+    public JobRunner(@Lazy ResetDataService resetDataService, MainService loadDailyService, MovieService movieService){
         this.resetDataService=resetDataService;
         this.loadDailyService=loadDailyService;
         this.movieService=movieService;

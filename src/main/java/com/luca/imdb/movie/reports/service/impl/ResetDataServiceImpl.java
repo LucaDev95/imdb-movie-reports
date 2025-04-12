@@ -23,6 +23,9 @@ public class ResetDataServiceImpl implements ResetDataService {
         this.resetTablesService=resetTablesService;
         this.tsvLoaderService=tsvLoaderService;
         this.emailService=emailService;
+
+        logger.info("created ResetDataServiceImpl");
+
     }
 
     @Override

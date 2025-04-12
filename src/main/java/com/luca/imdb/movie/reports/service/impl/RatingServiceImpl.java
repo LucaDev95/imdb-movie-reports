@@ -51,11 +51,12 @@ public class RatingServiceImpl implements RatingService {
     @Transactional
     public void deleteCurrentRatings() {
 
-        LocalDate today=LocalDate.now();
+        LocalDate today=executionProperties.getCurrentDate();
         ratingRepository.deleteCurrentRatings(today);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkReportGeneration() {
         LocalDate currentDate=executionProperties.getCurrentDate();
 

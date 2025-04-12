@@ -30,4 +30,3 @@ HELP.md
 mvnw
 mvnw.cmd
 target/
-src/main/resources/secrets.yml

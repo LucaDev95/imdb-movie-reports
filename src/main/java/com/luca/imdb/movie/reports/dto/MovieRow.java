@@ -85,4 +85,18 @@ public class MovieRow {
     public void setRatingRow(RatingRow ratingRow) {
         this.ratingRow = ratingRow;
     }
+
+    @Override
+    public String toString() {
+        return "MovieRow{" +
+                "tConst='" + tConst + '\'' +
+                ", primaryTitle='" + primaryTitle + '\'' +
+                ", originalTitle='" + originalTitle + '\'' +
+                ", isAdult=" + isAdult +
+                ", year=" + year +
+                ", runtimeMinutes=" + runtimeMinutes +
+                ", genres=" + genres +
+                ", ratingRow=" + ratingRow +
+                '}';
+    }
 }

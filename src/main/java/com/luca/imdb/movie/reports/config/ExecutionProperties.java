@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.LocalDate;
 
-@ConfigurationProperties(prefix="execution")
+@ConfigurationProperties(prefix = "execution")
 public class ExecutionProperties {
 
     private Integer tConstSelectSize;
@@ -25,8 +25,10 @@ public class ExecutionProperties {
 
     private LocalDate startDate;
 
+    private Integer timeoutSeconds;
 
-    public ExecutionProperties(Integer tConstSelectSize, Integer movieInsertSize, Integer ratingInsertSize, Integer maxPreviousYears, Integer maxRatingDays,String recipient,Integer summaryIntervalDays ) {
+
+    public ExecutionProperties(Integer tConstSelectSize, Integer movieInsertSize, Integer ratingInsertSize, Integer maxPreviousYears, Integer maxRatingDays, String recipient, Integer summaryIntervalDays, Integer timeoutSeconds) {
         this.tConstSelectSize = tConstSelectSize;
         this.movieInsertSize = movieInsertSize;
         this.ratingInsertSize = ratingInsertSize;
@@ -34,8 +36,9 @@ public class ExecutionProperties {
         this.maxRatingDays = maxRatingDays;
         this.recipient = recipient;
         this.summaryIntervalDays = summaryIntervalDays;
-        this.currentDate=LocalDate.now();
-        this.startDate=currentDate.minusDays(summaryIntervalDays);
+        this.currentDate = LocalDate.now();
+        this.startDate = currentDate.minusDays(summaryIntervalDays);
+        this.timeoutSeconds = timeoutSeconds;
     }
 
     public Integer getRatingInsertSize() {
@@ -72,5 +75,9 @@ public class ExecutionProperties {
 
     public LocalDate getStartDate() {
         return startDate;
+    }
+
+    public Integer getTimeoutSeconds() {
+        return timeoutSeconds;
     }
 }

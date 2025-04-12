@@ -1,32 +1,24 @@
 ## Installation & Execution
 
-* Once the project has been downloaded, replace the 'CHANGEME' entries in the docker-compose.yml
-  file with the desired values for user, password, and email.
 
+* In the `.env` file under the project root  add your own properties.
+Example:
 
-* Create a `secrets.yml` file under `src/main/resources` with the following structure:
-
-```yaml
-db:
-  username: changeme
-  password: changeme
-
-mail:
-  sender: changeme
-  password: changeme
-  recipient: changeme
+```
+DB_PASSWORD=myPassword
+DB_USERNAME=myUsername
+MAIL_PASSWORD=mailPassword
+MAIL_RECIPIENT=mail.recipient@gmail.com
+MAIL_SENDER=mail.sender@recipient.com
 ```
 
-* To enable email sending for automatic reports, make sure to generate an app password token from your email provider (e.g., Google Mail) and use it in the password field under mail.
+* To enable email sending for automatic reports, make sure to generate an app password token from your email provider (e.g., Google Mail) and use it in the `MAIL_PASSWORD` property.
 
 
 * From the root directory, run the command `docker compose up -d` from the command line.
 
 
-* Go to http://localhost:5050/ (pgAdmin interface) and create a database called imdb-movie-ratings, setting the username and password specified in the docker-compose.yml, with the hostname set to postgres.
-
-
-* In the newly created database, run the schema generation scripts contained in init_schema.sql.
+* Go to http://localhost:5050/ (pgAdmin interface) and create a database called imdb-movie-ratings, setting the username and password specified in the .env file, with the hostname set to `postgres`.
 
 
 * From the root of the project, run the command: `docker build . -t imdb-movie-reports:latest`.
